@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>छवि-आधारित प्रश्नोत्तरी</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom button styles for better visual appeal */
+        .quiz-button {
+            transition: all 0.3s ease-in-out;
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* shadow-md */
+        }
+        .quiz-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .quiz-button.selected {
+            border-color: #3b82f6; /* blue-600 */
+            background-color: #3b82f6; /* blue-600 */
+            color: white;
+        }
+        .quiz-button:not(.selected):hover {
+            background-color: #eff6ff; /* blue-50 */
+            border-color: #93c5fd; /* blue-300 */
+        }
+        .start-button {
+            background-image: linear-gradient(to right, #10B981, #059669); /* green-600 to green-700 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+        }
+        .start-button:hover {
+            background-image: linear-gradient(to right, #059669, #047857);
+            transform: scale(1.05);
+        }
+        .restart-button {
+            background-color: #ef4444; /* red-500 */
+        }
+        .restart-button:hover {
+            background-color: #dc2626; /* red-600 */
+        }
+
+        /* Timer bar animation */
+        #timer-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #cbd5e1; /* slate-300 */
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        #timer-progress {
+            height: 100%;
+            background-color: #22c55e; /* green-500 */
+            width: 100%; /* Starts full */
+            transition: width linear; /* Smooth transition for width */
+        }
+
+        /* Congratulations animation */
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100%) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f0f; /* Example color */
+            animation: confetti-fall 5s linear infinite;
+            opacity: 0;
+            z-index: 100;
+        }
+        .confetti:nth-child(2n) { background-color: #0ff; animation-delay: 0.5s; }
+        .confetti:nth-child(3n) { background-color: #ff0; animation-delay: 1s; }
+        .confetti:nth-child(4n) { background-color: #f0f; animation-delay: 1.5s; }
+        .confetti:nth-child(5n) { background-color: #0ff; animation-delay: 2s; }
+        .confetti:nth-child(6n) { background-color: #ff0; animation-delay: 2.5s; }
+        .confetti:nth-child(7n) { background-color: #f0f; animation-delay: 3s; }
+        .confetti:nth-child(8n) { background-color: #0ff; animation-delay: 3.5s; }
+        .confetti:nth-child(9n) { background-color: #ff0; animation-delay: 4s; }
+        .confetti:nth-child(10n) { background-color: #f0f; animation-delay: 4.5s; }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-100 to-purple-200 flex items-center justify-center p-4">
+
+    <div id="message-box" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+            <p id="message-text" class="text-lg font-semibold text-gray-800 mb-4"></p>
+            <button
+                onclick="hideMessage()"
+                class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 shadow-md"
+            >
+                ठीक है
+            </button>
+        </div>
+    </div>
+
+    <div id="congratulations-modal" class="fixed inset-0 bg-gradient-to-br from-purple-400 to-blue-600 bg-opacity-90 flex items-center justify-center z-50 hidden">
+        <div class="absolute inset-0 overflow-hidden pointer-events-none" id="confetti-container"></div>
+        <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-lg w-full transform scale-95 transition-transform duration-300 ease-out">
+            <h2 class="text-4xl font-extrabold text-green-700 mb-4 animate-bounce">बधाई हो! 🎉</h2>
+            <p class="text-2xl font-semibold text-gray-800 mb-6">आपने सभी स्तरों को सफलतापूर्वक पूरा कर लिया है!</p>
+            <p class="text-3xl font-bold text-purple-700 mb-8">आप एक जीनियस हैं! 😜</p>
+            <button
+                onclick="restartQuiz()"
+                class="px-8 py-4 bg-blue-600 text-white text-xl font-bold rounded-full hover:bg-blue-700 transition duration-300 transform hover:scale-105 shadow-lg"
+            >
+                पुनः प्रयास करें
+            </button>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-2xl p-6 sm:p-8 md:p-10 w-full max-w-2xl flex flex-col items-center">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-6 text-center">
+            छवि-आधारित प्रश्नोत्तरी
+        </h1>
+
+        <div id="quiz-intro" class="text-center">
+            <p class="text-lg text-gray-600 mb-8">
+                अपनी दृश्य समझ का परीक्षण करें! विभिन्न विषयों पर छवि-आधारित प्रश्नों का उत्तर दें।
+            </p>
+            <button
+                id="start-quiz-button"
+                class="px-8 py-4 text-white text-xl font-bold rounded-full start-button"
+            >
+                प्रश्नोत्तरी शुरू करें
+            </button>
+        </div>
+
+        <div id="quiz-questions" class="w-full hidden">
+            <div class="text-center mb-6">
+                <p class="text-lg text-gray-700 font-semibold mb-2">
+                    स्तर <span id="current-level-display">1</span> / 10
+                </p>
+                <p class="text-lg text-gray-700 font-semibold mb-2">
+                    प्रश्न <span id="current-question-number">1</span> / 5
+                </p>
+                <p class="text-md text-gray-500">
+                    विषय: <span id="question-subject"></span>
+                </p>
+            </div>
+
+            <div id="timer-bar">
+                <div id="timer-progress"></div>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg shadow-inner mb-6">
+                <img
+                    id="question-image"
+                    src=""
+                    alt="Question Image"
+                    class="w-full h-auto max-h-64 object-contain rounded-md mb-4 border border-gray-200"
+                    onerror="this.onerror=null;this.src='https://placehold.co/400x250/CCCCCC/666666?text=छवि+उपलब्ध+नहीं';"
+                />
+                <p id="question-text" class="text-xl sm:text-2xl font-semibold text-gray-800 text-center">
+                    प्रश्न यहाँ आएगा?
+                </p>
+            </div>
+
+            <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                </div>
+        </div>
+
+        <div id="level-failed-screen" class="text-center w-full hidden">
+            <h2 class="text-3xl font-bold text-red-600 mb-4">स्तर असफल! 😔</h2>
+            <p class="text-xl text-gray-700 mb-6">
+                आपने इस स्तर को पास करने के लिए पर्याप्त सही उत्तर नहीं दिए।
+            </p>
+            <button
+                id="retry-level-button"
+                class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300 shadow-md mr-4"
+            >
+                स्तर पुनः प्रयास करें
+            </button>
+            <button
+                id="restart-quiz-from-start-button"
+                class="px-6 py-3 restart-button text-white rounded-lg hover:bg-red-700 transition duration-300 shadow-md"
+            >
+                शुरुआत से पुनः प्रयास करें
+            </button>
+        </div>
+
+        <div id="quiz-results" class="text-center w-full hidden">
+            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">
+                प्रश्नोत्तरी समाप्त!
+            </h2>
+            <p class="text-xl sm:text-2xl text-gray-700 mb-6">
+                आपका कुल स्कोर: <span id="final-score" class="font-bold text-blue-600"></span> / <span id="total-questions-results"></span>
+            </p>
+            <button
+                id="restart-quiz-button"
+                class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300 shadow-md"
+            >
+                पुनः प्रयास करें
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Firebase variables (required by Canvas, but not used for storage in this specific app)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        /**
+         * Converts an SVG string to a base64 data URL.
+         * @param {string} svgString - The SVG content as a string.
+         * @returns {string} - The data URL.
+         */
+        function createSvgDataUrl(svgString) {
+            const encodedSvg = btoa(unescape(encodeURIComponent(svgString))); // Handle UTF-8 characters properly
+            return `data:image/svg+xml;base64,${encodedSvg}`;
+        }
+
+        // --- Dynamic Image Generation Functions ---
+
+        function generatePythagoreanTheoremSVG() {
+            const svgWidth = 400;
+            const svgHeight = 250;
+            const padding = 50;
+            const scale = 30; // Scale factor for drawing
+
+            const x1 = padding;
+            const y1 = svgHeight - padding;
+            const x2 = x1 + 3 * scale;
+            const y2 = y1;
+            const x3 = x1;
+            const y3 = y1 - 4 * scale;
+
+            const svg = `
+                <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#f8fafc; border-radius: 8px;">
+                    <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#f8fafc" rx="8" ry="8"/>
+                    <polygon points="${x1},${y1} ${x2},${y2} ${x3},${y3}" fill="#bfdbfe" stroke="#3b82f6" stroke-width="3"/>
+                    
+                    <line x1="${x1 + 10}" y1="${y1}" x2="${x1 + 10}" y2="${y1 - 10}" stroke="#3b82f6" stroke-width="2"/>
+                    <line x1="${x1}" y1="${y1 - 10}" x2="${x1 + 10}" y2="${y1 - 10}" stroke="#3b82f6" stroke-width="2"/>
+
+                    <text x="${(x1 + x2) / 2}" y="${y1 + 20}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">3 इकाई</text>
+                    <text x="${x1 - 30}" y="${(y1 + y3) / 2}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(-90 ${x1 - 30},${(y1 + y3) / 2})">4 इकाई</text>
+                    <text x="${(x2 + x3) / 2 + 10}" y="${(y2 + y3) / 2 - 10}" font-family="Inter, sans-serif" font-size="20" fill="#dc2626" text-anchor="middle">X</text>
+                </svg>
+            `;
+            return createSvgDataUrl(svg);
+        }
+
+        function generateCoordinatePlaneSVG() {
+            const svgWidth = 400;
+            const svgHeight = 250;
+            const centerX = svgWidth / 2;
+            const centerY = svgHeight / 2;
+            const gridSize = 30; // Spacing for grid lines and labels
+            const pointX = 2; // Point A x-coordinate
+            const pointY = 3; // Point A y-coordinate
+
+            let svg = `
+                <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#f8fafc; border-radius: 8px;">
+                    <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#f8fafc" rx="8" ry="8"/>
+                    <g stroke="#e2e8f0" stroke-width="1">
+                        ${Array.from({ length: Math.floor(svgWidth / gridSize) / 2 }).map((_, i) => `<line x1="${centerX + (i + 1) * gridSize}" y1="0" x2="${centerX + (i + 1) * gridSize}" y2="${svgHeight}"/>`).join('')}
+                        ${Array.from({ length: Math.floor(svgWidth / gridSize) / 2 }).map((_, i) => `<line x1="${centerX - (i + 1) * gridSize}" y1="0" x2="${centerX - (i + 1) * gridSize}" y2="${svgHeight}"/>`).join('')}
+                        ${Array.from({ length: Math.floor(svgHeight / gridSize) / 2 }).map((_, i) => `<line x1="0" y1="${centerY + (i + 1) * gridSize}" x2="${svgWidth}" y2="${centerY + (i + 1) * gridSize}"/>`).join('')}
+                        ${Array.from({ length: Math.floor(svgHeight / gridSize) / 2 }).map((_, i) => `<line x1="0" y1="${centerY - (i + 1) * gridSize}" x2="${svgWidth}" y2="${centerY - (i + 1) * gridSize}"/>`).join('')}
+                    </g>
+
+                    <line x1="0" y1="${centerY}" x2="${svgWidth}" y2="${centerY}" stroke="#334155" stroke-width="2"/>
+                    <line x1="${centerX}" y1="0" x2="${centerX}" y2="${svgHeight}" stroke="#334155" stroke-width="2"/>
+
+                    <text x="${svgWidth - 10}" y="${centerY + 20}" font-family="Inter, sans-serif" font-size="16" fill="#334155" text-anchor="end">X</text>
+                    <text x="${centerX + 10}" y="20" font-family="Inter, sans-serif" font-size="16" fill="#334155" text-anchor="start">Y</text>
+
+                    <g font-family="Inter, sans-serif" font-size="14" fill="#334155">
+                        ${Array.from({ length: 5 }).map((_, i) => `
+                            <line x1="${centerX + (i + 1) * gridSize}" y1="${centerY - 5}" x2="${centerX + (i + 1) * gridSize}" y2="${centerY + 5}" stroke="#334155" stroke-width="1"/>
+                            <text x="${centerX + (i + 1) * gridSize}" y="${centerY + 20}" text-anchor="middle">${i + 1}</text>
+                            <line x1="${centerX - (i + 1) * gridSize}" y1="${centerY - 5}" x2="${centerX - (i + 1) * gridSize}" y2="${centerY + 5}" stroke="#334155" stroke-width="1"/>
+                            <text x="${centerX - (i + 1) * gridSize}" y="${centerY + 20}" text-anchor="middle">-${i + 1}</text>
+                        `).join('')}
+                        ${Array.from({ length: 3 }).map((_, i) => `
+                            <line x1="${centerX - 5}" y1="${centerY - (i + 1) * gridSize}" x2="${centerX + 5}" y2="${centerY - (i + 1) * gridSize}" stroke="#334155" stroke-width="1"/>
+                            <text x="${centerX - 20}" y="${centerY - (i + 1) * gridSize + 5}" text-anchor="end">${i + 1}</text>
+                            <line x1="${centerX - 5}" y1="${centerY + (i + 1) * gridSize}" x2="${centerX + 5}" y2="${centerY + (i + 1) * gridSize}" stroke="#334155" stroke-width="1"/>
+                            <text x="${centerX - 20}" y="${centerY + (i + 1) * gridSize + 5}" text-anchor="end">-${i + 1}</text>
+                        `).join('')}
+                    </g>
+
+                    <circle cx="${centerX + pointX * gridSize}" cy="${centerY - pointY * gridSize}" r="5" fill="#ef4444"/>
+                    <text x="${centerX + pointX * gridSize + 15}" y="${centerY - pointY * gridSize - 5}" font-family="Inter, sans-serif" font-size="18" fill="#ef4444">A</text>
+                </svg>
+            `;
+            return createSvgDataUrl(svg);
+        }
+
+        function generateAreaOfRectangleSVG() {
+            const svgWidth = 400;
+            const svgHeight = 250;
+            const rectWidth = 160; // Corresponds to 8 units
+            const rectHeight = 100; // Corresponds to 5 units
+            const rectX = (svgWidth - rectWidth) / 2;
+            const rectY = (svgHeight - rectHeight) / 2;
+
+            const svg = `
+                <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#f8fafc; border-radius: 8px;">
+                    <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#f8fafc" rx="8" ry="8"/>
+                    <rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" fill="#dbeafe" stroke="#3b82f6" stroke-width="3"/>
+                    
+                    <text x="${rectX + rectWidth / 2}" y="${rectY - 15}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">8 सेमी</text>
+                    <text x="${rectX - 25}" y="${rectY + rectHeight / 2}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(-90 ${rectX - 25},${rectY + rectHeight / 2})">5 सेमी</text>
+                </svg>
+            `;
+            return createSvgDataUrl(svg);
+        }
+
+        function generateVolumeOfCylinderSVG() {
+            const svgWidth = 400;
+            const svgHeight = 250;
+            const centerX = svgWidth / 2;
+            const centerY = svgHeight / 2;
+            const radius = 40;
+            const height = 120;
+
+            const svg = `
+                <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#f8fafc; border-radius: 8px;">
+                    <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#f8fafc" rx="8" ry="8"/>
+                    <ellipse cx="${centerX}" cy="${centerY - height / 2}" rx="${radius}" ry="${radius / 3}" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+                    <line x1="${centerX - radius}" y1="${centerY - height / 2}" x2="${centerX - radius}" y2="${centerY + height / 2}" stroke="#3b82f6" stroke-width="2"/>
+                    <line x1="${centerX + radius}" y1="${centerY - height / 2}" x2="${centerX + radius}" y2="${centerY + height / 2}" stroke="#3b82f6" stroke-width="2"/>
+                    <ellipse cx="${centerX}" cy="${centerY + height / 2}" rx="${radius}" ry="${radius / 3}" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+                    <ellipse cx="${centerX}" cy="${centerY + height / 2}" rx="${radius}" ry="${radius / 3}" fill="none" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 2"/>
+
+                    <text x="${centerX + radius + 30}" y="${centerY}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(90 ${centerX + radius + 30},${centerY})">10 सेमी</text>
+                    <line x1="${centerX - radius}" y1="${centerY + height / 2 + 10}" x2="${centerX + radius}" y2="${centerY + height / 2 + 10}" stroke="#1e40af" stroke-width="1"/>
+                    <text x="${centerX}" y="${centerY + height / 2 + 30}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">3 सेमी</text>
+                </svg>
+            `;
+            return createSvgDataUrl(svg);
+        }
+
+        function generateProbabilityDiceRollSVG() {
+            const svgWidth = 400;
+            const svgHeight = 250;
+            const diceSize = 100;
+            const dotRadius = 8;
+            const dotOffset = 25; // Offset from edge for dots
+
+            const svg = `
+                <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#f8fafc; border-radius: 8px;">
+                    <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#f8fafc" rx="8" ry="8"/>
+                    <rect x="${(svgWidth - diceSize) / 2}" y="${(svgHeight - diceSize) / 2}" width="${diceSize}" height="${diceSize}" fill="#fef08a" stroke="#d97706" stroke-width="3" rx="10" ry="10"/>
+                    
+                    <circle cx="${(svgWidth - diceSize) / 2 + dotOffset}" cy="${(svgHeight - diceSize) / 2 + dotOffset}" r="${dotRadius}" fill="#d97706"/>
+                    <circle cx="${(svgWidth - diceSize) / 2 + diceSize / 2}" cy="${(svgHeight - diceSize) / 2 + diceSize / 2}" r="${dotRadius}" fill="#d97706"/>
+                    <circle cx="${(svgWidth - diceSize) / 2 + diceSize - dotOffset}" cy="${(svgHeight - diceSize) / 2 + diceSize - dotOffset}" r="${dotRadius}" fill="#d97706"/>
+                </svg>
+            `;
+            return createSvgDataUrl(svg);
+        }
+
+        function generateSetTheoryVennDiagramSVG() {
+            const svgWidth = 400;
+            const svgHeight = 250;
+            const centerX = svgWidth / 2;
+            const centerY = svgHeight / 2;
+            const radius = 70;
+            const overlapOffset = 40;
+
+            const svg = `
+                <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#f8fafc; border-radius: 8px;">
+                    <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#f8fafc" rx="8" ry="8"/>
+                    
+                    <defs>
+                        <clipPath id="clipA">
+                            <circle cx="${centerX - overlapOffset}" cy="${centerY}" r="${radius}"/>
+                        </clipPath>
+                        <clipPath id="clipB">
+                            <circle cx="${centerX + overlapOffset}" cy="${centerY}" r="${radius}"/>
+                        </clipPath>
+                    </defs>
+
+                    <g clip-path="url(#clipA)">
+                        <circle cx="${centerX + overlapOffset}" cy="${centerY}" r="${radius}" fill="#bfdbfe"/>
+                    </g>
+                    <g clip-path="url(#clipB)">
+                        <circle cx="${centerX - overlapOffset}" cy="${centerY}" r="${radius}" fill="#bfdbfe"/>
+                    </g>
+
+                    <circle cx="${centerX - overlapOffset}" cy="${centerY}" r="${radius}" fill="none" stroke="#3b82f6" stroke-width="3"/>
+                    <circle cx="${centerX + overlapOffset}" cy="${centerY}" r="${radius}" fill="none" stroke="#3b82f6" stroke-width="3"/>
+                    
+                    <text x="${centerX - overlapOffset - radius + 15}" y="${centerY - radius - 10}" font-family="Inter, sans-serif" font-size="24" fill="#1e40af">A</text>
+                    <text x="${centerX + overlapOffset + radius - 15}" y="${centerY - radius - 10}" font-family="Inter, sans-serif" font-size="24" fill="#1e40af" text-anchor="end">B</text>
+                </svg>
+            `;
+            return createSvgDataUrl(svg);
+        }
+
+        function generateSlopeOfLineGraphSVG() {
+            const svgWidth = 400;
+            const svgHeight = 250;
+            const padding = 50;
+            const xAxisY = svgHeight - padding;
+            const yAxisX = padding;
+
+            const svg = `
+                <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#f8fafc; border-radius: 8px;">
+                    <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#f8fafc" rx="8" ry="8"/>
+                    <line x1="${yAxisX}" y1="${xAxisY}" x2="${svgWidth - padding / 2}" y2="${xAxisY}" stroke="#334155" stroke-width="2"/>
+                    <line x1="${yAxisX}" y1="${xAxisY}" x2="${yAxisX}" y2="${padding / 2}" stroke="#334155" stroke-width="2"/>
+                    
+                    <line x1="${yAxisX + 20}" y1="${xAxisY - 20}" x2="${svgWidth - padding - 20}" y2="${padding + 20}" stroke="#ef4444" stroke-width="4"/>
+
+                    <text x="${svgWidth - padding / 2 + 10}" y="${xAxisY + 10}" font-family="Inter, sans-serif" font-size="16" fill="#334155">X</text>
+                    <text x="${yAxisX - 10}" y="${padding / 2 - 10}" font-family="Inter, sans-serif" font-size="16" fill="#334155">Y</text>
+                    <text x="${yAxisX - 10}" y="${xAxisY + 20}" font-family="Inter, sans-serif" font-size="16" fill="#334155">0</text>
+                </svg>
+            `;
+            return createSvgDataUrl(svg);
+        }
+
+        function generateWorldMapClimateZonesSVG() {
+            const svgWidth = 400;
+            const svgHeight = 250;
+            const svg = `
+                <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#e0f2fe; border-radius: 8px;">
+                    <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#e0f2fe" rx="8" ry="8"/>
+                    <path d="M 50 100 C 70 50, 150 50, 170 100 L 180 150 C 160 200, 80 200, 60 150 Z" fill="#90ee90" stroke="#3b82f6" stroke-width="1"/>
+                    <path d="M 120 180 C 130 200, 150 200, 160 180 L 170 150 C 150 130, 130 130, 120 150 Z" fill="#90ee90" stroke="#3b82f6" stroke-width="1"/>
+                    <path d="M 230 180 C 240 200, 260 200, 270 180 L 280 150 C 260 130, 240 130, 230 150 Z" fill="#90ee90" stroke="#3b82f6" stroke-width="1"/>
+                    <path d="M 200 70 C 220 50, 250 50, 270 70 L 280 100 C 260 120, 220 120, 200 100 Z" fill="#90ee90" stroke="#3b82f6" stroke-width="1"/>
+                    <path d="M 270 70 C 290 50, 350 50, 370 70 L 380 120 C 360 140, 300 140, 280 120 Z" fill="#90ee90" stroke="#3b82f6" stroke-width="1"/>
+                    <path d="M 320 180 C 330 200, 350 200, 360 180 L 370 150 C 350 130, 330 130, 320 150 Z" fill="#90ee90" stroke="#3b82f6" stroke-width="1"/>
+
+                    <circle cx="200" cy="180" r="30" fill="#ef4444" opacity="0.6"/>
+                    <text x="200" y="185" font-family="Inter, sans-serif" font-size="24" fill="#ffffff" text-anchor="middle" font-weight="bold">A</text>
+                </svg>
+            `;
+            return createSvgDataUrl(svg);
+        }
+
+        function generateSimplePythonLoopSVG() {
+            const svgWidth = 400;
+            const svgHeight = 250;
+            const codeLines = [
+                "for i in range(5):",
+                "    print(i, end='')"
+            ];
+            const lineHeight = 30;
+            const startX = 50;
+            const startY = 80;
+
+            let svg = `
+                <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#2d2d2d; border-radius: 8px;">
+                    <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#2d2d2d" rx="8" ry="8"/>
+                    <text x="${startX}" y="${startY}" font-family="monospace" font-size="20" fill="#f8f8f2">${codeLines[0]}</text>
+                    <text x="${startX}" y="${startY + lineHeight}" font-family="monospace" font-size="20" fill="#f8f8f2">${codeLines[1]}</text>
+                </svg>
+            `;
+            return createSvgDataUrl(svg);
+        }
+
+        // Quiz data (50 questions, 6 options each)
+        const quizQuestions = [
+            // Level 1 (Science)
+            { subject: "विज्ञान", id: "science1", image: "human_circulatory_system", question: "यह चित्र मानव शरीर के किस तंत्र को दर्शाता है, और इसका मुख्य कार्य क्या है?", options: ["पाचन तंत्र - भोजन को पचाना", "श्वसन तंत्र - गैसों का आदान-प्रदान", "परिसंचरण तंत्र - रक्त का संचार", "उत्सर्जन तंत्र - अपशिष्ट निकालना", "तंत्रिका तंत्र - संदेश भेजना", "कंकाल तंत्र - शरीर को सहारा देना"], answer: "परिसंचरण तंत्र - रक्त का संचार" },
+            { subject: "विज्ञान", id: "science2", image: "photosynthesis_diagram", question: "यह चित्र किस जैविक प्रक्रिया को दर्शाता है, और इस प्रक्रिया का अंतिम उत्पाद क्या है?", options: ["श्वसन - कार्बन डाइऑक्साइड", "प्रकाश संश्लेषण - ग्लूकोज और ऑक्सीजन", "किण्वन - अल्कोहल", "वाष्पोत्सर्जन - जल वाष्प", "प्रजनन - नए जीव", "अवशोषण - पोषक तत्व"], answer: "प्रकाश संश्लेषण - ग्लूकोज और ऑक्सीजन" },
+            { subject: "विज्ञान", id: "science3", image: "newtons_cradle", question: "यह उपकरण किस वैज्ञानिक सिद्धांत को प्रदर्शित करता है?", options: ["ऊर्जा संरक्षण का नियम", "गति संरक्षण का नियम", "न्यूटन का तीसरा नियम", "उत्प्लावन का सिद्धांत", "आकर्षण का नियम", "दाब का सिद्धांत"], answer: "गति संरक्षण का नियम" },
+            { subject: "विज्ञान", id: "science4", image: "chemical_reaction_beaker", question: "इस चित्र में एक रासायनिक अभिक्रिया हो रही है। यदि इसमें गैस निकल रही है, तो यह किस प्रकार की अभिक्रिया का संकेत हो सकता है?", options: ["अवक्षेपण अभिक्रिया", "उदासीनीकरण अभिक्रिया", "गैसीय उत्पाद वाली अभिक्रिया", "विस्थापन अभिक्रिया", "संयोजन अभिक्रिया", "अपघटन अभिक्रिया"], answer: "गैसीय उत्पाद वाली अभिक्रिया" },
+            { subject: "विज्ञान", id: "science5", image: "telescope_observing", question: "यह वैज्ञानिक उपकरण किस उद्देश्य के लिए उपयोग किया जाता है?", options: ["सूक्ष्म वस्तुओं को देखने के लिए", "दूर की खगोलीय वस्तुओं को देखने के लिए", "ध्वनि को मापने के लिए", "तापमान को मापने के लिए", "दूरी मापने के लिए", "प्रकाश की तीव्रता मापने के लिए"], answer: "दूर की खगोलीय वस्तुओं को देखने के लिए" },
+
+            // Level 2 (Maths) - Dynamic images
+            { subject: "गणित", id: "math1", image: "pythagorean_theorem_generated", question: "इस समकोण त्रिभुज में, यदि आधार 3 इकाई और लंब 4 इकाई है, तो कर्ण की लंबाई क्या होगी?", options: ["5 इकाई", "6 इकाई", "7 इकाई", "8 इकाई", "9 इकाई", "10 इकाई"], answer: "5 इकाई" },
+            { subject: "गणित", id: "math2", image: "pie_chart_distribution", question: "यह पाई चार्ट एक कक्षा में छात्रों के पसंदीदा रंगों का वितरण दर्शाता है। यदि कुल 40 छात्र हैं, और नीला रंग 25% है, तो कितने छात्रों को नीला रंग पसंद है?", options: ["8", "10", "12", "15", "20", "25"], answer: "10" },
+            { subject: "गणित", id: "math3", image: "geometric_sequence", question: "इस ज्यामितीय पैटर्न को देखें। यदि पैटर्न त्रिकोणीय संख्याओं (1, 3, 6, 10, ...) का अनुसरण करता है, तो अगली आकृति में कितने वृत्त होंगे?", options: ["10", "12", "15", "16", "18", "21"], answer: "15" },
+            { subject: "गणित", id: "math4", image: "coordinate_plane_point_generated", question: "इस निर्देशांक तल पर बिंदु A के निर्देशांक क्या हैं?", options: ["(2, 3)", "(3, 2)", "(-2, 3)", "(3, -2)", "(2, -3)", "(-3, 2)"], answer: "(2, 3)" }, // Assuming point A is at (2,3)
+            { subject: "गणित", id: "math5", image: "area_of_rectangle_generated", question: "इस आयत की लंबाई 8 सेमी और चौड़ाई 5 सेमी है। इसका क्षेत्रफल क्या होगा?", options: ["13 वर्ग सेमी", "26 वर्ग सेमी", "40 वर्ग सेमी", "80 वर्ग सेमी", "30 वर्ग सेमी", "35 वर्ग सेमी"], answer: "40 वर्ग सेमी" },
+
+            // Level 3 (Geography) - Dynamic image for geo1
+            { subject: "भूगोल", id: "geo1", image: "world_map_climate_zones_generated", question: "इस विश्व मानचित्र पर दिखाए गए 'A' क्षेत्र में आमतौर पर किस प्रकार की जलवायु पाई जाती है?", options: ["ध्रुवीय", "भूमध्यसागरीय", "उष्णकटिबंधीय", "शुष्क", "समशीतोष्ण", "टुंड्रा"], answer: "उष्णकटिबंधीय" }, // 'A' points to equatorial region
+            { subject: "भूगोल", id: "geo2", image: "river_delta", question: "यह चित्र एक नदी के मुहाने पर बनने वाली किस भौगोलिक आकृति को दर्शाता है, जो तलछट के जमाव से बनती है?", options: ["झील", "घाटी", "डेल्टा", "प्रपात", "मुहाना", "खाड़ी"], answer: "डेल्टा" },
+            { subject: "भूगोल", id: "geo3", image: "tectonic_plates_map", question: "यह मानचित्र पृथ्वी की किन संरचनाओं को दर्शाता है, जो भूकंप और ज्वालामुखी गतिविधियों का कारण बनती हैं?", options: ["महासागर धाराएँ", "पवन पेटियाँ", "टेक्टोनिक प्लेटें", "जलवायु क्षेत्र", "पर्वत श्रृंखलाएँ", "ज्वालामुखी बेल्ट"], answer: "टेक्टोनिक प्लेटें" },
+            { subject: "भूगोल", id: "geo4", image: "desert_oasis", question: "इस शुष्क परिदृश्य में पानी का यह स्रोत क्या कहलाता है, जो रेगिस्तान में जीवन का समर्थन करता है?", options: ["झील", "नदी", "मरुद्यान (ओएसिस)", "कुआँ", "तालाब", "झरना"], answer: "मरुद्यान (ओएसिस)" },
+            { subject: "भूगोल", id: "geo5", image: "mountain_formation", question: "यह चित्र पर्वतों के निर्माण की किस प्रक्रिया को दर्शाता है, जहाँ चट्टान की परतें संपीड़न के कारण मुड़ जाती हैं?", options: ["अपरदन", "निक्षेपण", "वलन (फोल्डिंग)", "ज्वालामुखी", "भ्रंशन", "अपक्षय"], answer: "वलन (फोल्डिंग)" },
+
+            // Level 4 (History)
+            { subject: "इतिहास", id: "hist1", image: "great_pyramid_giza", question: "यह प्राचीन संरचना किस सभ्यता से संबंधित है और इसका मुख्य उद्देश्य क्या था?", options: ["रोमन - सार्वजनिक स्नानघर", "मिस्र - फिरौन के मकबरे", "ग्रीक - मंदिर", "मेसोपोटामिया - ज़िगगुरात", "माया - वेधशाला", "इंका - किलेबंदी"], answer: "मिस्र - फिरौन के मकबरे" },
+            { subject: "इतिहास", id: "hist2", image: "ashoka_pillar", question: "यह स्तंभ किस भारतीय सम्राट से जुड़ा है, और यह किस धर्म के प्रचार का प्रतीक है?", options: ["चंद्रगुप्त मौर्य - जैन धर्म", "अशोक - बौद्ध धर्म", "समुद्रगुप्त - हिंदू धर्म", "हर्षवर्धन - सिख धर्म", "कनिष्क - ईसाई धर्म", "अकबर - दीन-ए-इलाही"], answer: "अशोक - बौद्ध धर्म" },
+            { subject: "इतिहास", id: "hist3", image: "indus_valley_artifacts", question: "ये कलाकृतियाँ किस प्राचीन भारतीय सभ्यता से संबंधित हैं, जो अपनी शहरी योजना और जल निकासी प्रणाली के लिए प्रसिद्ध थी?", options: ["वैदिक सभ्यता", "सिंधु घाटी सभ्यता", "महाजनपद काल", "मौर्य साम्राज्य", "गुप्त साम्राज्य", "हड़प्पा सभ्यता"], answer: "सिंधु घाटी सभ्यता" },
+            { subject: "इतिहास", id: "hist4", "image": "mughal_miniature_painting", question: "यह चित्रकला शैली किस भारतीय साम्राज्य के दौरान फली-फूली, और इसकी क्या विशेषता है?", options: ["गुप्त साम्राज्य - धार्मिक भित्ति चित्र", "चोल साम्राज्य - कांस्य मूर्तियां", "मुगल साम्राज्य - दरबारी जीवन और प्रकृति के सूक्ष्म चित्र", "विजयनगर साम्राज्य - मंदिर वास्तुकला", "पाल साम्राज्य - पांडुलिपि चित्रण", "राजपूत - लोक कला"], answer: "मुगल साम्राज्य - दरबारी जीवन और प्रकृति के सूक्ष्म चित्र" },
+            { subject: "इतिहास", id: "hist5", image: "harappan_drainage_system", question: "यह चित्र सिंधु घाटी सभ्यता की किस अनूठी विशेषता को दर्शाता है, जो उनके उन्नत शहरी नियोजन को उजागर करती है?", options: ["किलेबंदी", "जल संचयन प्रणाली", "नियोजित जल निकासी प्रणाली", "अनाज भंडारण", "सार्वजनिक स्नानागार", "सड़कों का जाल"], answer: "नियोजित जल निकासी प्रणाली" },
+
+            // Level 5 (Computer/IT)
+            { subject: "कंप्यूटर / आईटी", id: "it1", image: "network_topology", question: "यह चित्र किस प्रकार की नेटवर्क टोपोलॉजी को दर्शाता है, जहाँ सभी डिवाइस एक केंद्रीय हब से जुड़े होते हैं?", options: ["बस टोपोलॉजी", "रिंग टोपोलॉजी", "स्टार टोपोलॉजी", "मेश टोपोलॉजी", "ट्री टोपोलॉजी", "हाइब्रिड टोपोलॉजी"], answer: "स्टार टोपोलॉजी" },
+            { subject: "कंप्यूटर / आईटी", id: "it2", image: "flowchart_decision", question: "इस फ्लोचार्ट प्रतीक का क्या अर्थ है, और यह आमतौर पर किस स्थिति में उपयोग होता है?", options: ["शुरुआत/अंत - प्रोग्राम का प्रारंभ", "प्रक्रिया - एक ऑपरेशन", "इनपुट/आउटपुट - डेटा दर्ज करना", "निर्णय - एक शर्त की जाँच", "कनेक्टर - प्रवाह को जोड़ना", "दस्तावेज़ - रिपोर्ट बनाना"], answer: "निर्णय - एक शर्त की जाँच" },
+            { subject: "कंप्यूटर / आईटी", id: "it3", image: "simple_python_loop_generated", question: "इस पायथन कोड स्निपेट का आउटपुट क्या होगा? (मान लें: `for i in range(5): print(i, end='')`)", options: ["01234", "12345", "0 1 2 3 4", "Error", "5", "None"], answer: "01234" },
+            { subject: "कंप्यूटर / आईटी", id: "it4", image: "cloud_computing_diagram", question: "यह चित्र किस कंप्यूटिंग मॉडल को दर्शाता है, जहाँ संसाधन इंटरनेट पर सेवा के रूप में प्रदान किए जाते हैं?", options: ["क्लाइंट-सर्वर मॉडल", "पीयर-टू-पीयर नेटवर्क", "क्लाउड कंप्यूटिंग", "लोकल एरिया नेटवर्क", "मेनफ्रेम कंप्यूटिंग", "डिस्ट्रीब्यूटेड कंप्यूटिंग"], answer: "क्लाउड कंप्यूटिंग" },
+            { subject: "कंप्यूटर / आईटी", id: "it5", image: "database_icon", question: "यह आइकन आमतौर पर किस प्रकार के डेटा प्रबंधन प्रणाली का प्रतिनिधित्व करता है, जो संरचित डेटा को संग्रहीत और पुनः प्राप्त करता है?", options: ["वर्ड प्रोसेसर", "स्प्रेडशीट", "डेटाबेस", "प्रेजेंटेशन सॉफ्टवेयर", "वेब ब्राउज़र", "ग्राफिक डिज़ाइन"], answer: "डेटाबेस" },
+
+            // Level 6 (General Knowledge)
+            { subject: "सामान्य ज्ञान", id: "gk1", image: "statue_of_liberty", question: "यह प्रसिद्ध स्मारक कहाँ स्थित है और यह किस देश को उपहार में दिया गया था?", options: ["लंदन - यूनाइटेड किंगडम", "पेरिस - फ्रांस", "न्यूयॉर्क - संयुक्त राज्य अमेरिका", "बर्लिन - जर्मनी", "टोक्यो - जापान", "सिडनी - ऑस्ट्रेलिया"], answer: "न्यूयॉर्क - संयुक्त राज्य अमेरिका" },
+            { subject: "सामान्य ज्ञान", id: "gk2", image: "map_of_africa", question: "इस महाद्वीप पर स्थित सबसे ऊँचा पर्वत कौन सा है?", options: ["माउंट एवरेस्ट", "माउंट किलिमंजारो", "माउंट फ़ूजी", "माउंट ब्लैंक", "माउंट मैकिनले", "माउंट एलब्रस"], answer: "माउंट किलिमंजारो" },
+            { subject: "सामान्य ज्ञान", id: "gk3", image: "national_bird_peacock", question: "यह भारत का राष्ट्रीय पक्षी है। इसकी मुख्य विशेषता क्या है?", options: ["यह बहुत तेज़ दौड़ता है", "यह अपनी सुंदर पूंछ के पंखों के लिए जाना जाता है", "यह रात में शिकार करता है", "यह पानी में रहता है", "यह उड़ नहीं सकता", "यह केवल ठंडे इलाकों में पाया जाता है"], answer: "यह अपनी सुंदर पूंछ के पंखों के लिए जाना जाता है" },
+            { subject: "सामान्य ज्ञान", id: "gk4", image: "seven_wonders_colosseum", question: "यह प्राचीन अखाड़ा किस शहर में स्थित है और यह किस साम्राज्य का प्रतीक है?", options: ["एथेंस - ग्रीक साम्राज्य", "रोम - रोमन साम्राज्य", "इस्तांबुल - ओटोमन साम्राज्य", "काहिरा - मिस्र साम्राज्य", "बीजिंग - चीनी साम्राज्य", "दिल्ली - मुगल साम्राज्य"], answer: "रोम - रोमन साम्राज्य" },
+            { subject: "सामान्य ज्ञान", id: "gk5", image: "solar_system_planets", question: "इस सौरमंडल के चित्र में, सूर्य से दूसरा ग्रह कौन सा है?", options: ["मंगल", "बृहस्पति", "शुक्र", "पृथ्वी", "शनि", "बुध"], answer: "शुक्र" },
+
+            // Level 7 (Language)
+            { subject: "भाषा", id: "lang1", image: "person_deep_thought", question: "इस चित्र में व्यक्ति की मुद्रा और चेहरे के भाव क्या दर्शाते हैं?", options: ["खुशी और उत्साह", "गहरी सोच या चिंता", "गुस्सा और निराशा", "नींद और आराम", "आश्चर्य और भ्रम", "डर और घबराहट"], answer: "गहरी सोच या चिंता" },
+            { subject: "भाषा", id: "lang2", image: "children_playing_happily", question: "इस चित्र को देखकर एक शीर्षक सुझाएँ जिसमें 'खुशी' शब्द का उपयोग हो।", options: ["खेलते हुए बच्चे", "खुशी से खेलते हुए बच्चे", "बच्चे और खिलौने", "बच्चों का पार्क", "शरारती बच्चे", "शांत बच्चे"], answer: "खुशी से खेलते हुए बच्चे" },
+            { subject: "भाषा", id: "lang3", image: "old_book_open", question: "इस पुरानी खुली किताब को देखकर आप किस प्रकार की कहानी या जानकारी की उम्मीद करेंगे?", options: ["आधुनिक विज्ञान", "भविष्य की तकनीक", "ऐतिहासिक ग्रंथ या प्राचीन ज्ञान", "नवीनतम समाचार", "कॉमिक बुक", "खाना पकाने की विधि"], answer: "ऐतिहासिक ग्रंथ या प्राचीन ज्ञान" },
+            { subject: "भाषा", id: "lang4", image: "person_speaking_microphone", question: "यह व्यक्ति क्या कर रहा है, और इस क्रिया के लिए उपयुक्त क्रिया शब्द क्या होगा?", options: ["पढ़ना - पढ़ना", "लिखना - लिखना", "भाषण देना - बोलना", "सुनना - सुनना", "गाना - गाना", "देखना - देखना"], answer: "भाषण देना - बोलना" },
+            { subject: "भाषा", id: "lang5", image: "puzzle_pieces_fitting", question: "इस चित्र में पहेली के टुकड़े एक साथ फिट हो रहे हैं। यह किस अवधारणा का प्रतीक हो सकता है?", options: ["अव्यवस्था", "समस्या का समाधान या सामंजस्य", "अलग होना", "प्रतियोगिता", "अधूरापन", "टकराव"], answer: "समस्या का समाधान या सामंजस्य" },
+
+            // Level 8 (Science - Advanced)
+            { subject: "विज्ञान", id: "science6", image: "human_brain_lobes", question: "इस चित्र में मानव मस्तिष्क के विभिन्न लोब (lobes) दर्शाए गए हैं। 'फ्रंटल लोब' का मुख्य कार्य क्या है?", options: ["दृष्टि", "श्रवण", "निर्णय लेना और योजना बनाना", "संतुलन", "स्पर्श संवेदना", "स्मृति"], answer: "निर्णय लेना और योजना बनाना" },
+            { subject: "विज्ञान", id: "science7", image: "water_cycle_diagram", question: "यह चित्र जल चक्र को दर्शाता है। 'संघनन' की प्रक्रिया कहाँ होती है?", options: ["महासागरों में", "बादलों में", "भूमिगत जल में", "नदियों में", "पौधों में", "पहाड़ों पर"], answer: "बादलों में" },
+            { subject: "विज्ञान", id: "science8", image: "food_chain_web", question: "इस खाद्य श्रृंखला/जाल में, 'उपभोक्ता' कौन से जीव हैं?", options: ["उत्पादक (पौधे)", "अपघटक (बैक्टीरिया)", "शाकाहारी और मांसाहारी", "केवल मांसाहारी", "केवल शाकाहारी", "केवल उत्पादक"], answer: "शाकाहारी और मांसाहारी" },
+            { subject: "विज्ञान", id: "science9", image: "solar_eclipse_diagram", question: "यह चित्र किस खगोलीय घटना को दर्शाता है, जब चंद्रमा सूर्य और पृथ्वी के बीच आता है?", options: ["चंद्र ग्रहण", "सूर्य ग्रहण", "उल्का वर्षा", "धूमकेतु का गुजरना", "तारों का टिमटिमाना", "ध्रुवीय ज्योति"], answer: "सूर्य ग्रहण" },
+            { subject: "विज्ञान", id: "science10", image: "dna_replication_process", question: "यह चित्र DNA प्रतिकृति की प्रक्रिया को दर्शाता है। इस प्रक्रिया का मुख्य उद्देश्य क्या है?", options: ["प्रोटीन संश्लेषण", "कोशिका विभाजन से पहले आनुवंशिक सामग्री की प्रतिलिपि बनाना", "ऊर्जा उत्पादन", "अपशिष्ट निकालना", "कोशिका की पहचान", "एंजाइम उत्पादन"], answer: "कोशिका विभाजन से पहले आनुवंशिक सामग्री की प्रतिलिपि बनाना" },
+
+            // Level 9 (Maths - Advanced) - Dynamic images
+            { subject: "गणित", id: "math6", image: "quadratic_equation_graph", question: "यह ग्राफ एक द्विघात समीकरण को दर्शाता है। इस समीकरण के कितने वास्तविक मूल (roots) हैं?", options: ["कोई नहीं", "एक", "दो", "तीन", "अनंत", "निर्धारित नहीं किया जा सकता"], answer: "दो" }, // Assuming a parabola crossing x-axis twice
+            { subject: "गणित", id: "math7", image: "volume_of_cylinder_generated", question: "इस बेलन की त्रिज्या 3 सेमी और ऊँचाई 10 सेमी है। इसका आयतन क्या होगा? (π ≈ 3.14)", options: ["30 घन सेमी", "90 घन सेमी", "282.6 घन सेमी", "94.2 घन सेमी", "188.4 घन सेमी", "314 घन सेमी"], answer: "282.6 घन सेमी" }, // Volume = π * r^2 * h = 3.14 * 3^2 * 10 = 3.14 * 9 * 10 = 282.6
+            { subject: "गणित", id: "math8", image: "probability_dice_roll_generated", question: "यह एक पासे को दर्शाता है। एक पासे को एक बार फेंकने पर सम संख्या आने की क्या प्रायिकता है?", options: ["1/6", "1/3", "1/2", "2/3", "5/6", "1"], answer: "1/2" },
+            { subject: "गणित", id: "math9", image: "set_theory_venn_diagram_generated", question: "इस वेन आरेख में, छायांकित क्षेत्र (shaded region) क्या दर्शाता है?", options: ["A union B", "A intersection B", "A minus B", "B minus A", "A का पूरक", "B का पूरक"], answer: "A intersection B" }, // Assuming shaded is the overlap
+            { subject: "गणित", id: "math10", image: "slope_of_line_graph_generated", question: "इस सीधी रेखा का ढलान (slope) क्या है?", options: ["धनात्मक", "ऋणात्मक", "शून्य", "अपरिभाषित", "1", "-1"], answer: "धनात्मक" }, // Assuming an upward sloping line
+
+            // Level 10 (GK - Advanced)
+            { subject: "सामान्य ज्ञान", id: "gk6", image: "united_nations_building", question: "यह इमारत किस अंतर्राष्ट्रीय संगठन का मुख्यालय है, जिसका उद्देश्य विश्व शांति और सुरक्षा बनाए रखना है?", options: ["विश्व बैंक", "अंतर्राष्ट्रीय मुद्रा कोष", "संयुक्त राष्ट्र", "विश्व व्यापार संगठन", "नाटो", "यूरोपीय संघ"], answer: "संयुक्त राष्ट्र" },
+            { subject: "सामान्य ज्ञान", id: "gk7", image: "amazon_river_forest", question: "यह नदी और इसके आसपास का जंगल किस महाद्वीप पर स्थित है, और यह अपनी जैव विविधता के लिए प्रसिद्ध है?", options: ["एशिया - हिमालय", "अफ्रीका - सहारा", "दक्षिण अमेरिका - अमेज़न", "उत्तरी अमेरिका - रॉकी", "यूरोप - आल्प्स", "ऑस्ट्रेलिया - ग्रेट डिवाइडिंग रेंज"], answer: "दक्षिण अमेरिका - अमेज़न" },
+            { subject: "सामान्य ज्ञान", id: "gk8", image: "india_gate_delhi", question: "यह स्मारक किस भारतीय शहर में स्थित है और यह किस युद्ध में शहीद हुए सैनिकों की याद में बनाया गया था?", options: ["मुंबई - द्वितीय विश्व युद्ध", "चेन्नई - कारगिल युद्ध", "दिल्ली - प्रथम विश्व युद्ध", "कोलकाता - भारत-पाक युद्ध", "बेंगलुरु - प्लासी का युद्ध", "जयपुर - पानीपत का युद्ध"], answer: "दिल्ली - प्रथम विश्व युद्ध" },
+            { subject: "सामान्य ज्ञान", id: "gk9", image: "iss_in_space", question: "यह अंतरिक्ष में तैरती हुई संरचना क्या है, जो विभिन्न देशों के सहयोग से बनाई गई है?", options: ["हबल स्पेस टेलीस्कोप", "अंतर्राष्ट्रीय अंतरिक्ष स्टेशन (ISS)", "स्पेस शटल", "चंद्रयान", "मंगलयान", "वोयाजर"], answer: "अंतर्राष्ट्रीय अंतरिक्ष स्टेशन (ISS)" },
+            { subject: "सामान्य ज्ञान", id: "gk10", image: "great_barrier_reef", question: "यह दुनिया की सबसे बड़ी प्रवाल भित्ति प्रणाली कहाँ स्थित है, और यह किस महाद्वीप के तट पर है?", options: ["प्रशांत महासागर - एशिया", "अटलांटिक महासागर - अफ्रीका", "हिंद महासागर - भारत", "प्रशांत महासागर - ऑस्ट्रेलिया", "आर्कटिक महासागर - यूरोप", "कैरिबियन सागर - उत्तरी अमेरिका"], answer: "प्रशांत महासागर - ऑस्ट्रेलिया" },
+        ];
+
+        // Image map for local image paths and generated SVG functions
+        // Function references should be stored, not their return values, so they are called when needed.
+        const imageMap = {
+            // Science
+            "human_circulatory_system": "images/human_circulatory_system.png",
+            "photosynthesis_diagram": "images/photosynthesis_diagram.png",
+            "newtons_cradle": "images/newtons_cradle.png",
+            "chemical_reaction_beaker": "images/chemical_reaction_beaker.png",
+            "telescope_observing": "images/telescope_observing.png",
+            // Math (Generated - Store function references)
+            "pythagorean_theorem_generated": generatePythagoreanTheoremSVG,
+            "coordinate_plane_point_generated": generateCoordinatePlaneSVG,
+            "area_of_rectangle_generated": generateAreaOfRectangleSVG,
+            "volume_of_cylinder_generated": generateVolumeOfCylinderSVG,
+            "probability_dice_roll_generated": generateProbabilityDiceRollSVG,
+            "set_theory_venn_diagram_generated": generateSetTheoryVennDiagramSVG,
+            "slope_of_line_graph_generated": generateSlopeOfLineGraphSVG,
+            // Math (Still needs image)
+            "pie_chart_distribution": "images/pie_chart_distribution.png",
+            "geometric_sequence": "images/geometric_sequence.png",
+            "quadratic_equation_graph": "images/quadratic_equation_graph.png",
+            // Geography (Generated for geo1)
+            "world_map_climate_zones_generated": generateWorldMapClimateZonesSVG,
+            // Geography (Still needs image)
+            "river_delta": "images/river_delta.png",
+            "tectonic_plates_map": "images/tectonic_plates_map.png",
+            "desert_oasis": "images/desert_oasis.png",
+            "mountain_formation": "images/mountain_formation.png",
+            // History
+            "great_pyramid_giza": "images/great_pyramid_giza.png",
+            "ashoka_pillar": "images/ashoka_pillar.png",
+            "indus_valley_artifacts": "images/indus_valley_artifacts.png",
+            "mughal_miniature_painting": "images/mughal_miniature_painting.png",
+            "harappan_drainage_system": "images/harappan_drainage_system.png",
+            // Computer/IT (Generated for it3)
+            "network_topology": "images/network_topology.png",
+            "flowchart_decision": "images/flowchart_decision.png",
+            "simple_python_loop_generated": generateSimplePythonLoopSVG,
+            "cloud_computing_diagram": "images/cloud_computing_diagram.png",
+            "database_icon": "images/database_icon.png",
+            // General Knowledge
+            "statue_of_liberty": "images/statue_of_liberty.png",
+            "map_of_africa": "images/map_of_africa.png",
+            "national_bird_peacock": "images/national_bird_peacock.png",
+            "seven_wonders_colosseum": "images/seven_wonders_colosseum.png",
+            "solar_system_planets": "images/solar_system_planets.png",
+            // Language
+            "person_deep_thought": "images/person_deep_thought.png",
+            "children_playing_happily": "images/children_playing_happily.png",
+            "old_book_open": "images/old_book_open.png",
+            "person_speaking_microphone": "images/person_speaking_microphone.png",
+            "puzzle_pieces_fitting": "images/puzzle_pieces_fitting.png",
+            // Science - Advanced
+            "human_brain_lobes": "images/human_brain_lobes.png",
+            "water_cycle_diagram": "images/water_cycle_diagram.png",
+            "food_chain_web": "images/food_chain_web.png",
+            "solar_eclipse_diagram": "images/solar_eclipse_diagram.png",
+            "dna_replication_process": "images/dna_replication_process.png",
+            // GK - Advanced
+            "united_nations_building": "images/united_nations_building.png",
+            "amazon_river_forest": "images/amazon_river_forest.png",
+            "india_gate_delhi": "images/india_gate_delhi.png",
+            "iss_in_space": "images/iss_in_space.png",
+            "great_barrier_reef": "images/great_barrier_reef.png",
+        };
+
+        // Quiz state variables
+        let shuffledQuestions = [];
+        let currentQuestionGlobalIndex = 0; // Index in the full 50 questions array
+        let currentLevel = 1;
+        let levelCorrectAnswers = 0;
+        let totalCorrectAnswers = 0;
+        let timer = 23; // 23 seconds per question
+        let timerInterval;
+        const QUESTIONS_PER_LEVEL = 5;
+        const TOTAL_LEVELS = 10;
+
+        // DOM elements
+        const quizIntro = document.getElementById('quiz-intro');
+        const quizQuestionsScreen = document.getElementById('quiz-questions');
+        const quizResultsScreen = document.getElementById('quiz-results');
+        const startQuizButton = document.getElementById('start-quiz-button');
+        const restartQuizButton = document.getElementById('restart-quiz-button');
+        const currentLevelDisplay = document.getElementById('current-level-display');
+        const currentQuestionNumberSpan = document.getElementById('current-question-number');
+        const questionSubjectSpan = document.getElementById('question-subject');
+        const questionImage = document.getElementById('question-image');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const finalScoreSpan = document.getElementById('final-score');
+        const totalQuestionsResultsSpan = document.getElementById('total-questions-results');
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        const timerProgressBar = document.getElementById('timer-progress');
+        const levelFailedScreen = document.getElementById('level-failed-screen');
+        const retryLevelButton = document.getElementById('retry-level-button');
+        const restartQuizFromStartButton = document.getElementById('restart-quiz-from-start-button');
+        const congratulationsModal = document.getElementById('congratulations-modal');
+        const confettiContainer = document.getElementById('confetti-container');
+
+        // Ensure all elements are found
+        if (!quizIntro || !quizQuestionsScreen || !startQuizButton || !timerProgressBar || !optionsContainer) {
+            console.error("Error: One or more essential DOM elements not found. Check HTML IDs.");
+            // Display a user-friendly message if critical elements are missing
+            document.body.innerHTML = '<div class="flex items-center justify-center min-h-screen bg-red-100 text-red-800 text-xl font-bold">क्षमा करें, प्रश्नोत्तरी लोड करने में एक महत्वपूर्ण त्रुटि हुई है। कृपया बाद में पुनः प्रयास करें।</div>';
+        }
+
+        /**
+         * Displays a custom message box with the given message.
+         * @param {string} msg - The message to display.
+         */
+        function showMessage(msg) {
+            messageText.textContent = msg;
+            messageBox.classList.remove('hidden');
+        }
+
+        /**
+         * Hides the custom message box.
+         */
+        function hideMessage() {
+            messageBox.classList.add('hidden');
+        }
+
+        /**
+         * Shuffles the quiz questions randomly.
+         */
+        function shuffleQuestions() {
+            shuffledQuestions = [...quizQuestions]; // Create a shallow copy
+            for (let i = shuffledQuestions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledQuestions[i], shuffledQuestions[j]] = [shuffledQuestions[j], shuffledQuestions[i]];
+            }
+            console.log("Questions shuffled. Total questions:", shuffledQuestions.length);
+        }
+
+        /**
+         * Starts the timer for the current question.
+         */
+        function startTimer() {
+            clearInterval(timerInterval); // Clear any existing timer
+            timer = 23; // Reset timer for new question
+            updateTimerDisplay(); // Update display immediately
+            timerInterval = setInterval(() => {
+                timer--;
+                updateTimerDisplay();
+                if (timer <= 0) {
+                    clearInterval(timerInterval);
+                    // Time's up, move to next question (consider as incorrect)
+                    console.log("Time's up for question:", shuffledQuestions[currentQuestionGlobalIndex].id);
+                    // Automatically select a wrong answer to move on
+                    handleAnswerSelect(null, null); // Pass null to indicate time ran out
+                }
+            }, 1000);
+        }
+
+        /**
+         * Updates the visual display of the timer progress bar.
+         */
+        function updateTimerDisplay() {
+            const percentage = (timer / 23) * 100;
+            timerProgressBar.style.width = `${percentage}%`;
+            if (percentage < 30) {
+                timerProgressBar.style.backgroundColor = '#ef4444'; // red-500
+            } else if (percentage < 60) {
+                timerProgressBar.style.backgroundColor = '#facc15'; // yellow-400
+            } else {
+                timerProgressBar.style.backgroundColor = '#22c55e'; // green-500
+            }
+        }
+
+        /**
+         * Renders the current question and its options on the screen.
+         */
+        function renderQuiz() {
+            try {
+                hideAllScreens();
+                quizQuestionsScreen.classList.remove('hidden');
+                console.log("Rendering quiz. Global index:", currentQuestionGlobalIndex, "Level:", currentLevel);
+
+                const currentQuestion = shuffledQuestions[currentQuestionGlobalIndex];
+                if (!currentQuestion) {
+                    console.error("Error: currentQuestion is undefined at index", currentQuestionGlobalIndex);
+                    showResults(); // Fallback to results if no question
+                    return;
+                }
+
+                currentLevelDisplay.textContent = currentLevel;
+                currentQuestionNumberSpan.textContent = (currentQuestionGlobalIndex % QUESTIONS_PER_LEVEL) + 1;
+                questionSubjectSpan.textContent = currentQuestion.subject;
+
+                // Check if the image is a generated SVG function or a file path
+                if (typeof imageMap[currentQuestion.image] === 'function') {
+                    questionImage.src = imageMap[currentQuestion.image](); // Call the function to get SVG data URL
+                } else {
+                    questionImage.src = imageMap[currentQuestion.image]; // Use the direct path
+                }
+                
+                questionImage.alt = `Question Image for ${currentQuestion.id}`;
+                questionText.textContent = currentQuestion.question;
+
+                optionsContainer.innerHTML = ''; // Clear previous options
+
+                currentQuestion.options.forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+                    button.classList.add(
+                        'quiz-button',
+                        'p-4',
+                        'rounded-lg',
+                        'border-2',
+                        'bg-white',
+                        'text-gray-800',
+                        'border-gray-300',
+                        'hover:bg-blue-50',
+                        'hover:border-blue-400',
+                        'font-medium',
+                        'text-left',
+                        'transition',
+                        'duration-200',
+                        'ease-in-out',
+                        'transform',
+                        'hover:scale-102'
+                    );
+                    button.onclick = () => handleAnswerSelect(option, button);
+                    optionsContainer.appendChild(button);
+                });
+
+                // Start the timer for the new question
+                startTimer();
+            } catch (error) {
+                console.error("Error during renderQuiz:", error);
+                showMessage("प्रश्नोत्तरी लोड करने में त्रुटि हुई। कृपया पुनः प्रयास करें।");
+                restartQuiz();
+            }
+        }
+
+        /**
+         * Handles the selection of an answer option.
+         * @param {string | null} option - The selected option text, or null if time ran out.
+         * @param {HTMLElement | null} clickedButton - The button element that was clicked, or null.
+         */
+        function handleAnswerSelect(option, clickedButton) {
+            clearInterval(timerInterval); // Stop the timer immediately
+
+            // Disable all options to prevent multiple selections
+            Array.from(optionsContainer.children).forEach(btn => {
+                btn.disabled = true;
+                btn.classList.remove('hover:bg-blue-50', 'hover:border-blue-400', 'hover:scale-102');
+            });
+
+            const currentQuestion = shuffledQuestions[currentQuestionGlobalIndex];
+
+            if (option !== null && option === currentQuestion.answer) {
+                levelCorrectAnswers++;
+                totalCorrectAnswers++;
+                if (clickedButton) {
+                    clickedButton.classList.add('bg-green-500', 'text-white', 'border-green-600');
+                    clickedButton.classList.remove('bg-blue-500', 'text-white', 'border-blue-600', 'bg-white', 'text-gray-800', 'border-gray-300');
+                }
+            } else {
+                // If time ran out or incorrect option was chosen
+                if (clickedButton) {
+                    clickedButton.classList.add('bg-red-500', 'text-white', 'border-red-600');
+                    clickedButton.classList.remove('bg-blue-500', 'text-white', 'border-blue-600', 'bg-white', 'text-gray-800', 'border-gray-300');
+                }
+                // Highlight correct answer
+                Array.from(optionsContainer.children).forEach(btn => {
+                    if (btn.textContent.includes(currentQuestion.answer)) {
+                        btn.classList.add('bg-green-200', 'border-green-400', 'text-green-800');
+                    }
+                });
+            }
+
+            // Move to the next question after a short delay to show result
+            setTimeout(moveToNextQuestion, 1000); // 1 second delay
+        }
+
+        /**
+         * Moves to the next question or handles level/quiz completion.
+         */
+        function moveToNextQuestion() {
+            currentQuestionGlobalIndex++;
+            hideMessage(); // Hide message if it was shown
+
+            const questionsInCurrentLevel = currentQuestionGlobalIndex % QUESTIONS_PER_LEVEL;
+
+            if (questionsInCurrentLevel === 0 && currentQuestionGlobalIndex < shuffledQuestions.length) { // End of a level, and not end of all questions
+                checkLevelCompletion();
+            } else if (currentQuestionGlobalIndex < shuffledQuestions.length) {
+                renderQuiz();
+            } else { // End of all questions
+                checkLevelCompletion(); // Check final level completion or show overall results
+            }
+        }
+
+        /**
+         * Checks if the current level is passed and handles progression or failure.
+         */
+        function checkLevelCompletion() {
+            let levelPassed = false;
+            if (currentLevel >= 1 && currentLevel <= 3) {
+                levelPassed = levelCorrectAnswers >= 3;
+            } else if (currentLevel >= 4 && currentLevel <= TOTAL_LEVELS) {
+                levelPassed = levelCorrectAnswers === QUESTIONS_PER_LEVEL; // 5 out of 5
+            }
+            console.log(`Level ${currentLevel} completed. Correct answers: ${levelCorrectAnswers}. Passed: ${levelPassed}`);
+
+            if (levelPassed) {
+                currentLevel++;
+                levelCorrectAnswers = 0; // Reset for next level
+
+                if (currentLevel > TOTAL_LEVELS) {
+                    showCongratulations();
+                } else {
+                    // Level passed, move to next level's first question
+                    renderQuiz();
+                }
+            } else {
+                showLevelFailedScreen();
+            }
+        }
+
+        /**
+         * Displays the level failed screen.
+         */
+        function showLevelFailedScreen() {
+            hideAllScreens();
+            levelFailedScreen.classList.remove('hidden');
+            clearInterval(timerInterval); // Ensure timer is stopped
+        }
+
+        /**
+         * Retries the current level.
+         */
+        function retryCurrentLevel() {
+            // Reset score for the current level
+            levelCorrectAnswers = 0;
+            // Go back to the start of the current level's questions
+            currentQuestionGlobalIndex = (currentLevel - 1) * QUESTIONS_PER_LEVEL;
+            hideAllScreens();
+            renderQuiz();
+        }
+
+        /**
+         * Displays the final quiz results screen if not all levels were passed.
+         */
+        function showResults() {
+            hideAllScreens();
+            quizResultsScreen.classList.remove('hidden');
+            finalScoreSpan.textContent = totalCorrectAnswers;
+            totalQuestionsResultsSpan.textContent = quizQuestions.length; // Total possible questions
+            clearInterval(timerInterval); // Ensure timer is stopped
+        }
+
+        /**
+         * Displays the congratulations modal with animation.
+         */
+        function showCongratulations() {
+            hideAllScreens();
+            congratulationsModal.classList.remove('hidden');
+            // Start confetti animation
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 70%)`;
+                confetti.style.animationDelay = `${Math.random() * 5}s`;
+                confettiContainer.appendChild(confetti);
+            }
+            clearInterval(timerInterval); // Ensure timer is stopped
+        }
+
+        /**
+         * Resets the quiz state and restarts from the beginning.
+         */
+        function restartQuiz() {
+            clearInterval(timerInterval); // Stop any running timer
+            currentQuestionGlobalIndex = 0;
+            currentLevel = 1;
+            levelCorrectAnswers = 0;
+            totalCorrectAnswers = 0;
+            shuffleQuestions(); // Shuffle questions for a new game
+            hideAllScreens();
+            quizIntro.classList.remove('hidden'); // Show intro screen
+            congratulationsModal.classList.add('hidden'); // Hide congratulations
+            confettiContainer.innerHTML = ''; // Clear confetti
+        }
+
+        /**
+         * Hides all main quiz screens.
+         */
+        function hideAllScreens() {
+            quizIntro.classList.add('hidden');
+            quizQuestionsScreen.classList.add('hidden');
+            quizResultsScreen.classList.add('hidden');
+            levelFailedScreen.classList.add('hidden');
+            congratulationsModal.classList.add('hidden');
+        }
+
+        /**
+         * Starts the quiz by showing the first question.
+         */
+        function startQuiz() {
+            try {
+                shuffleQuestions();
+                currentQuestionGlobalIndex = 0;
+                currentLevel = 1;
+                levelCorrectAnswers = 0;
+                totalCorrectAnswers = 0;
+                renderQuiz();
+                console.log("Quiz started successfully.");
+            } catch (error) {
+                console.error("Error during startQuiz:", error);
+                showMessage("प्रश्नोत्तरी शुरू करने में त्रुटि हुई। कृपया पुनः प्रयास करें।");
+            }
+        }
+
+        // Event Listeners
+        window.onload = function() {
+            console.log("Window loaded. Attaching event listeners.");
+            if (startQuizButton) {
+                startQuizButton.addEventListener('click', startQuiz);
+            }
+            if (restartQuizButton) {
+                restartQuizButton.addEventListener('click', restartQuiz); // For final results screen
+            }
+            if (retryLevelButton) {
+                retryLevelButton.addEventListener('click', retryCurrentLevel); // For level failed screen
+            }
+            if (restartQuizFromStartButton) {
+                restartQuizFromStartButton.addEventListener('click', restartQuiz); // For level failed screen
+            }
+        };
+
+        // Firebase related: No actual Firestore operations are performed in this app
+        // as data persistence was not explicitly requested.
+        // If Firebase authentication or storage were needed, you would initialize them here:
+        /*
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        // const db = getFirestore(app);
+
+        // Authenticate user
+        if (initialAuthToken) {
+            signInWithCustomToken(auth, initialAuthToken)
+                .then(() => console.log("Signed in with custom token"))
+                .catch(error => console.error("Error signing in with custom token:", error));
+        } else {
+            signInAnonymously(auth)
+                .then(() => console.log("Signed in anonymously"))
+                .catch(error => console.error("Error signing in anonymously:", error));
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("User UID:", user.uid);
+                // You can use user.uid for Firestore operations if needed
+            } else {
+                console.log("No user is signed in.");
+            }
+        });
+        */
+    </script>
+</body>
+</html>
+
