@@ -37,12 +37,6 @@
             background-image: linear-gradient(to right, #059669, #047857);
             transform: scale(1.05);
         }
-        .restart-button {
-            background-color: #ef4444; /* red-500 */
-        }
-        .restart-button:hover {
-            background-color: #dc2626; /* red-600 */
-        }
 
         /* Timer bar animation */
         #timer-bar {
@@ -60,7 +54,7 @@
             transition: width linear; /* Smooth transition for width */
         }
 
-        /* Congratulations animation */
+        /* Confetti animation */
         @keyframes confetti-fall {
             0% { transform: translateY(-100%) rotate(0deg); opacity: 0; }
             10% { opacity: 1; }
@@ -86,7 +80,7 @@
         .confetti:nth-child(9n) { background-color: #ff0; animation-delay: 4s; }
         .confetti:nth-child(10n) { background-color: #f0f; animation-delay: 4.5s; }
 
-        /* Modal animation for level result screen */
+        /* Modal animation */
         @keyframes scaleIn {
             from {
                 transform: scale(0.8);
@@ -103,13 +97,14 @@
         }
 
         /* Image transition for quick switch */
+        #question-image { /* Apply transition directly to the image element */
+            transition: opacity 0.1s ease-in-out;
+        }
         .image-hidden {
             opacity: 0;
-            transition: opacity 0.1s ease-out; /* Quick fade out */
         }
         .image-visible {
             opacity: 1;
-            transition: opacity 0.1s ease-in; /* Quick fade in */
         }
     </style>
 </head>
@@ -127,43 +122,33 @@
         </div>
     </div>
 
-    <div id="congratulations-modal" class="fixed inset-0 bg-gradient-to-br from-purple-400 via-pink-500 to-blue-600 bg-opacity-95 flex items-center justify-center z-50 hidden">
-        <div class="absolute inset-0 overflow-hidden pointer-events-none" id="confetti-container"></div>
-        <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-md sm:max-w-lg w-full modal-animate-in">
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 mb-3 animate-pulse">
-                🎉 <span id="congrats-title-text">Congratulations!</span> 🎉
+    <div id="final-completion-modal" class="fixed inset-0 bg-gradient-to-br from-green-400 via-teal-500 to-blue-600 bg-opacity-95 flex items-center justify-center z-50 hidden">
+        <div class="absolute inset-0 overflow-hidden pointer-events-none" id="final-confetti-container">
+            </div>
+        <div id="final-completion-modal-content" class="bg-white p-6 sm:p-8 md:p-10 rounded-xl shadow-2xl text-center max-w-md sm:max-w-lg w-full opacity-0 transform scale-95 transition-all duration-300 ease-out">
+            <h2 id="final-congrats-title-text" class="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 mb-3 animate-pulse">
+                {finalCongratsTitle}
             </h2>
-            <p id="congrats-main-message" class="text-xl sm:text-2xl font-semibold text-gray-800 mb-4">
-                You have completed all levels. You are truly a genius!
+            <p id="final-congrats-message1-text" class="text-lg sm:text-xl font-semibold text-gray-700 mb-4">
+                {finalCongratsMessage1}
             </p>
-            <p id="congrats-secondary-message" class="text-md sm:text-lg text-gray-600 mb-6 sm:mb-8">
-                Try our other quiz games 👇
+            <p id="final-congrats-message2-text" class="text-md sm:text-lg text-gray-600 mb-6">
+                {finalCongratsMessage2}
             </p>
-            <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
-                <button
-                    onclick="window.open('https://subhamkr07.github.io/questions-/', '_blank')"
-                    id="congrats-button-click-here"
-                    class="w-full sm:w-auto px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white text-lg sm:text-xl font-bold rounded-full shadow-lg transform hover:scale-105 transition duration-300 ease-in-out"
-                >
-                    Click Here
+            <div class="flex flex-col space-y-4 mb-8">
+                <button id="final-button-redirect1" class="w-full px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-lg sm:text-xl font-bold rounded-lg hover:from-purple-600 hover:to-indigo-700 transition duration-300 transform hover:scale-105 shadow-lg">
+                    {finalButton1Text}
                 </button>
-                <button
-                    onclick="window.open('https://subhamkr07.github.io/gov.exams.sk/', '_blank')"
-                    id="congrats-button-play-now"
-                    class="w-full sm:w-auto px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-lg sm:text-xl font-bold rounded-full shadow-lg transform hover:scale-105 transition duration-300 ease-in-out"
-                >
-                    Play Now
+                <button id="final-button-redirect2" class="w-full px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-green-500 to-teal-600 text-white text-lg sm:text-xl font-bold rounded-lg hover:from-green-600 hover:to-teal-700 transition duration-300 transform hover:scale-105 shadow-lg">
+                    {finalButton2Text}
                 </button>
             </div>
-             <button
-                onclick="restartQuiz()"
-                id="congrats-button-restart"
-                class="w-full sm:w-auto px-6 py-3 bg-gray-700 text-white text-md sm:text-lg font-semibold rounded-lg hover:bg-gray-800 transition duration-300 shadow-md"
-            >
-                Play Again?
+            <button id="final-play-again-button" class="px-8 py-3 bg-gray-200 text-gray-800 text-lg font-semibold rounded-lg hover:bg-gray-300 transition duration-300 shadow-md">
+                {playAgainButton}
             </button>
         </div>
     </div>
+
 
     <div id="level-result-screen" class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-40 hidden">
         <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-lg w-full modal-animate-in">
@@ -266,14 +251,14 @@
         </div>
 
         <div id="quiz-results" class="text-center w-full hidden">
-            <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">
+            <h2 id="quiz-ended-title-text" class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">
                 प्रश्नोत्तरी समाप्त!
             </h2>
             <p class="text-xl sm:text-2xl text-gray-700 mb-6">
-                आपका कुल स्कोर: <span id="final-score" class="font-bold text-blue-600"></span> / <span id="total-questions-results"></span>
+                <span id="your-total-score-text">आपका कुल स्कोर</span>: <span id="final-score" class="font-bold text-blue-600"></span> / <span id="total-questions-results"></span>
             </p>
             <button
-                id="restart-quiz-button"
+                id="restart-quiz-button" 
                 class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300 shadow-md"
             >
                 पुनः प्रयास करें
@@ -311,13 +296,13 @@
                 quizEnded: "प्रश्नोत्तरी समाप्त!",
                 yourTotalScore: "आपका कुल स्कोर",
                 ok: "ठीक है",
-                // New congratulations popup texts
-                congratulationsTitlePopup: "बधाई हो!", // Text for inside the span
-                congratulationsMainMessagePopup: "आपने सभी स्तरों को सफलतापूर्वक पूरा कर लिया है। आप सचमुच एक जीनियस हैं!",
-                tryOtherGamesPopup: "हमारे अन्य प्रश्नोत्तरी खेल आज़माएँ 👇",
-                clickHereButtonPopup: "यहां क्लिक करें",
-                playNowButtonPopup: "अभी खेलें",
-                playAgainButtonPopup: "फिर से खेलें?"
+                // New texts for final completion popup
+                finalCongratsTitle: "🎉 अंतिम विजय! 🎉",
+                finalCongratsMessage1: "बधाई हो! आपने सभी स्तरों को सफलतापूर्वक पूरा कर लिया है। आप वास्तव में एक प्रतिभाशाली व्यक्ति हैं!",
+                finalCongratsMessage2: "हमारे अन्य प्रश्नोत्तरी खेल आज़माएँ 👇",
+                finalButton1Text: "यहां क्लिक करें",
+                finalButton2Text: "अभी खेलें",
+                playAgainButton: "फिर से खेलें?"
             },
             en: {
                 mainTitle: "Shubham Presents: Image-Based Quiz Game",
@@ -339,13 +324,13 @@
                 quizEnded: "Quiz Ended!",
                 yourTotalScore: "Your Total Score",
                 ok: "OK",
-                // New congratulations popup texts
-                congratulationsTitlePopup: "Congratulations!", // Text for inside the span
-                congratulationsMainMessagePopup: "You have completed all levels. You are truly a genius!",
-                tryOtherGamesPopup: "Try our other quiz games 👇",
-                clickHereButtonPopup: "Click Here",
-                playNowButtonPopup: "Play Now",
-                playAgainButtonPopup: "Play Again?"
+                // New texts for final completion popup
+                finalCongratsTitle: "🎉 Final Victory! 🎉",
+                finalCongratsMessage1: "Congratulations! You have completed all levels. You are truly a genius!",
+                finalCongratsMessage2: "Try our other quiz games 👇",
+                finalButton1Text: "Click Here",
+                finalButton2Text: "Play Now",
+                playAgainButton: "Play Again?"
             }
         };
 
@@ -357,31 +342,51 @@
             document.getElementById('intro-text').textContent = langText[currentLanguage].introText;
             document.getElementById('start-quiz-button').textContent = langText[currentLanguage].startButton;
             document.getElementById('language-prompt').textContent = langText[currentLanguage].languagePrompt;
-            document.getElementById('level-text').textContent = langText[currentLanguage].levelLabel;
-            document.getElementById('question-text-label').textContent = langText[currentLanguage].questionLabel;
-            document.getElementById('subject-text-label').textContent = langText[currentLanguage].subjectLabel;
-            document.getElementById('question-image').onerror = function() {
-                this.onerror=null;
-                this.src=`https://placehold.co/400x250/CCCCCC/666666?text=${encodeURIComponent(langText[currentLanguage].imageNotAvailable)}`;
-            };
-            // Update level result screen labels
-            document.getElementById('level-correct-label').textContent = langText[currentLanguage].correctAnswers;
-            document.getElementById('level-incorrect-label').textContent = langText[currentLanguage].incorrectAnswers;
-            document.getElementById('level-percentage-label').textContent = langText[currentLanguage].percentage;
-            document.getElementById('next-level-button').textContent = langText[currentLanguage].nextLevel;
-            document.getElementById('retry-level-button-result').textContent = langText[currentLanguage].retryLevel;
-            document.getElementById('home-button-result').textContent = langText[currentLanguage].home;
-
-            // Update new congratulations modal texts
-            document.getElementById('congrats-title-text').textContent = langText[currentLanguage].congratulationsTitlePopup;
-            document.getElementById('congrats-main-message').textContent = langText[currentLanguage].congratulationsMainMessagePopup;
-            document.getElementById('congrats-secondary-message').textContent = langText[currentLanguage].tryOtherGamesPopup;
-            document.getElementById('congrats-button-click-here').textContent = langText[currentLanguage].clickHereButtonPopup;
-            document.getElementById('congrats-button-play-now').textContent = langText[currentLanguage].playNowButtonPopup;
-            document.getElementById('congrats-button-restart').textContent = langText[currentLanguage].playAgainButtonPopup;
             
-            // Update message box button
-            document.querySelector('#message-box button').textContent = langText[currentLanguage].ok;
+            // Quiz questions screen (if visible)
+            if (document.getElementById('level-text')) { // Check if elements exist before updating
+                document.getElementById('level-text').textContent = langText[currentLanguage].levelLabel;
+                document.getElementById('question-text-label').textContent = langText[currentLanguage].questionLabel;
+                document.getElementById('subject-text-label').textContent = langText[currentLanguage].subjectLabel;
+            }
+             if (document.getElementById('question-image')) {
+                document.getElementById('question-image').onerror = function() {
+                    this.onerror=null;
+                    this.src=`https://placehold.co/400x250/CCCCCC/666666?text=${encodeURIComponent(langText[currentLanguage].imageNotAvailable)}`;
+                };
+            }
+
+            // Level result screen labels
+            if (document.getElementById('level-correct-label')) {
+                document.getElementById('level-correct-label').textContent = langText[currentLanguage].correctAnswers;
+                document.getElementById('level-incorrect-label').textContent = langText[currentLanguage].incorrectAnswers;
+                document.getElementById('level-percentage-label').textContent = langText[currentLanguage].percentage;
+                document.getElementById('next-level-button').textContent = langText[currentLanguage].nextLevel;
+                document.getElementById('retry-level-button-result').textContent = langText[currentLanguage].retryLevel;
+                document.getElementById('home-button-result').textContent = langText[currentLanguage].home;
+            }
+
+            // Final completion popup
+            if (document.getElementById('final-congrats-title-text')) {
+                document.getElementById('final-congrats-title-text').textContent = langText[currentLanguage].finalCongratsTitle;
+                document.getElementById('final-congrats-message1-text').textContent = langText[currentLanguage].finalCongratsMessage1;
+                document.getElementById('final-congrats-message2-text').textContent = langText[currentLanguage].finalCongratsMessage2;
+                document.getElementById('final-button-redirect1').textContent = langText[currentLanguage].finalButton1Text;
+                document.getElementById('final-button-redirect2').textContent = langText[currentLanguage].finalButton2Text;
+                document.getElementById('final-play-again-button').textContent = langText[currentLanguage].playAgainButton;
+            }
+            
+            // Fallback quiz results screen
+            if (document.getElementById('quiz-ended-title-text')) {
+                document.getElementById('quiz-ended-title-text').textContent = langText[currentLanguage].quizEnded;
+                document.getElementById('your-total-score-text').textContent = langText[currentLanguage].yourTotalScore;
+                document.getElementById('restart-quiz-button').textContent = langText[currentLanguage].retryLevel; // Or "Try Again"
+            }
+
+            // Message box button
+            if (document.querySelector('#message-box button')) {
+                document.querySelector('#message-box button').textContent = langText[currentLanguage].ok;
+            }
         }
 
         /**
@@ -390,10 +395,11 @@
          * @returns {string} - The data URL.
          */
         function createSvgDataUrl(svgString) {
-            const encodedSvg = btoa(unescape(encodeURIComponent(svgString))); // Handle UTF-8 characters properly
+            const svgWithLang = svgString.replace(/\{currentLanguage\}/g, currentLanguage); // Simple replacement
+            const encodedSvg = btoa(unescape(encodeURIComponent(svgWithLang)));
             return `data:image/svg+xml;base64,${encodedSvg}`;
         }
-
+        
         // --- Dynamic Image Generation Functions ---
         // (These functions remain the same as they generate generic SVGs, not language-specific text)
 
@@ -401,7 +407,7 @@
             const svgWidth = 400;
             const svgHeight = 250;
             const padding = 50;
-            const scale = 30; // Scale factor for drawing
+            const scale = 30; 
 
             const x1 = padding;
             const y1 = svgHeight - padding;
@@ -410,16 +416,17 @@
             const x3 = x1;
             const y3 = y1 - 4 * scale;
 
+            const textBase = currentLanguage === 'hi' ? '3 इकाई' : '3 units';
+            const textPerp = currentLanguage === 'hi' ? '4 इकाई' : '4 units';
+
             const svg = `
                 <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#f8fafc; border-radius: 8px;">
                     <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#f8fafc" rx="8" ry="8"/>
                     <polygon points="${x1},${y1} ${x2},${y2} ${x3},${y3}" fill="#bfdbfe" stroke="#3b82f6" stroke-width="3"/>
-                    
                     <line x1="${x1 + 10}" y1="${y1}" x2="${x1 + 10}" y2="${y1 - 10}" stroke="#3b82f6" stroke-width="2"/>
                     <line x1="${x1}" y1="${y1 - 10}" x2="${x1 + 10}" y2="${y1 - 10}" stroke="#3b82f6" stroke-width="2"/>
-
-                    <text x="${(x1 + x2) / 2}" y="${y1 + 20}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">${currentLanguage === 'hi' ? '3 इकाई' : '3 units'}</text>
-                    <text x="${x1 - 30}" y="${(y1 + y3) / 2}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(-90 ${x1 - 30},${(y1 + y3) / 2})">${currentLanguage === 'hi' ? '4 इकाई' : '4 units'}</text>
+                    <text x="${(x1 + x2) / 2}" y="${y1 + 20}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">${textBase}</text>
+                    <text x="${x1 - 30}" y="${(y1 + y3) / 2}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(-90 ${x1 - 30},${(y1 + y3) / 2})">${textPerp}</text>
                     <text x="${(x2 + x3) / 2 + 10}" y="${(y2 + y3) / 2 - 10}" font-family="Inter, sans-serif" font-size="20" fill="#dc2626" text-anchor="middle">X</text>
                 </svg>
             `;
@@ -431,9 +438,9 @@
             const svgHeight = 250;
             const centerX = svgWidth / 2;
             const centerY = svgHeight / 2;
-            const gridSize = 30; // Spacing for grid lines and labels
-            const pointX = 2; // Point A x-coordinate
-            const pointY = 3; // Point A y-coordinate
+            const gridSize = 30;
+            const pointX = 2; 
+            const pointY = 3; 
 
             let svg = `
                 <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#f8fafc; border-radius: 8px;">
@@ -444,13 +451,10 @@
                         ${Array.from({ length: Math.floor(svgHeight / gridSize) / 2 }).map((_, i) => `<line x1="0" y1="${centerY + (i + 1) * gridSize}" x2="${svgWidth}" y2="${centerY + (i + 1) * gridSize}"/>`).join('')}
                         ${Array.from({ length: Math.floor(svgHeight / gridSize) / 2 }).map((_, i) => `<line x1="0" y1="${centerY - (i + 1) * gridSize}" x2="${svgWidth}" y2="${centerY - (i + 1) * gridSize}"/>`).join('')}
                     </g>
-
                     <line x1="0" y1="${centerY}" x2="${svgWidth}" y2="${centerY}" stroke="#334155" stroke-width="2"/>
                     <line x1="${centerX}" y1="0" x2="${centerX}" y2="${svgHeight}" stroke="#334155" stroke-width="2"/>
-
                     <text x="${svgWidth - 10}" y="${centerY + 20}" font-family="Inter, sans-serif" font-size="16" fill="#334155" text-anchor="end">X</text>
                     <text x="${centerX + 10}" y="20" font-family="Inter, sans-serif" font-size="16" fill="#334155" text-anchor="start">Y</text>
-
                     <g font-family="Inter, sans-serif" font-size="14" fill="#334155">
                         ${Array.from({ length: 5 }).map((_, i) => `
                             <line x1="${centerX + (i + 1) * gridSize}" y1="${centerY - 5}" x2="${centerX + (i + 1) * gridSize}" y2="${centerY + 5}" stroke="#334155" stroke-width="1"/>
@@ -465,7 +469,6 @@
                             <text x="${centerX - 20}" y="${centerY + (i + 1) * gridSize + 5}" text-anchor="end">-${i + 1}</text>
                         `).join('')}
                     </g>
-
                     <circle cx="${centerX + pointX * gridSize}" cy="${centerY - pointY * gridSize}" r="5" fill="#ef4444"/>
                     <text x="${centerX + pointX * gridSize + 15}" y="${centerY - pointY * gridSize - 5}" font-family="Inter, sans-serif" font-size="18" fill="#ef4444">A</text>
                 </svg>
@@ -476,18 +479,19 @@
         function generateAreaOfRectangleSVG() {
             const svgWidth = 400;
             const svgHeight = 250;
-            const rectWidth = 160; // Corresponds to 8 units
-            const rectHeight = 100; // Corresponds to 5 units
+            const rectWidth = 160; 
+            const rectHeight = 100; 
             const rectX = (svgWidth - rectWidth) / 2;
             const rectY = (svgHeight - rectHeight) / 2;
+            const lengthText = currentLanguage === 'hi' ? '8 सेमी' : '8 cm';
+            const widthText = currentLanguage === 'hi' ? '5 सेमी' : '5 cm';
 
             const svg = `
                 <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#f8fafc; border-radius: 8px;">
                     <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#f8fafc" rx="8" ry="8"/>
                     <rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" fill="#dbeafe" stroke="#3b82f6" stroke-width="3"/>
-                    
-                    <text x="${rectX + rectWidth / 2}" y="${rectY - 15}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">${currentLanguage === 'hi' ? '8 सेमी' : '8 cm'}</text>
-                    <text x="${rectX - 25}" y="${rectY + rectHeight / 2}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(-90 ${rectX - 25},${rectY + rectHeight / 2})">${currentLanguage === 'hi' ? '5 सेमी' : '5 cm'}</text>
+                    <text x="${rectX + rectWidth / 2}" y="${rectY - 15}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">${lengthText}</text>
+                    <text x="${rectX - 25}" y="${rectY + rectHeight / 2}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(-90 ${rectX - 25},${rectY + rectHeight / 2})">${widthText}</text>
                 </svg>
             `;
             return createSvgDataUrl(svg);
@@ -500,6 +504,9 @@
             const centerY = svgHeight / 2;
             const radius = 40;
             const height = 120;
+            const heightLabel = currentLanguage === 'hi' ? '10 सेमी' : '10 cm';
+            const radiusLabel = currentLanguage === 'hi' ? '3 सेमी' : '3 cm';
+
 
             const svg = `
                 <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#f8fafc; border-radius: 8px;">
@@ -509,10 +516,9 @@
                     <line x1="${centerX + radius}" y1="${centerY - height / 2}" x2="${centerX + radius}" y2="${centerY + height / 2}" stroke="#3b82f6" stroke-width="2"/>
                     <ellipse cx="${centerX}" cy="${centerY + height / 2}" rx="${radius}" ry="${radius / 3}" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
                     <ellipse cx="${centerX}" cy="${centerY + height / 2}" rx="${radius}" ry="${radius / 3}" fill="none" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 2"/>
-
-                    <text x="${centerX + radius + 30}" y="${centerY}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(90 ${centerX + radius + 30},${centerY})">${currentLanguage === 'hi' ? '10 सेमी' : '10 cm'}</text>
+                    <text x="${centerX + radius + 30}" y="${centerY}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(90 ${centerX + radius + 30},${centerY})">${heightLabel}</text>
                     <line x1="${centerX - radius}" y1="${centerY + height / 2 + 10}" x2="${centerX + radius}" y2="${centerY + height / 2 + 10}" stroke="#1e40af" stroke-width="1"/>
-                    <text x="${centerX}" y="${centerY + height / 2 + 30}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">${currentLanguage === 'hi' ? '3 सेमी' : '3 cm'}</text>
+                    <text x="${centerX}" y="${centerY + height / 2 + 30}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">${radiusLabel}</text>
                 </svg>
             `;
             return createSvgDataUrl(svg);
@@ -523,13 +529,12 @@
             const svgHeight = 250;
             const diceSize = 100;
             const dotRadius = 8;
-            const dotOffset = 25; // Offset from edge for dots
+            const dotOffset = 25; 
 
             const svg = `
                 <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#f8fafc; border-radius: 8px;">
                     <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#f8fafc" rx="8" ry="8"/>
                     <rect x="${(svgWidth - diceSize) / 2}" y="${(svgHeight - diceSize) / 2}" width="${diceSize}" height="${diceSize}" fill="#fef08a" stroke="#d97706" stroke-width="3" rx="10" ry="10"/>
-                    
                     <circle cx="${(svgWidth - diceSize) / 2 + dotOffset}" cy="${(svgHeight - diceSize) / 2 + dotOffset}" r="${dotRadius}" fill="#d97706"/>
                     <circle cx="${(svgWidth - diceSize) / 2 + diceSize / 2}" cy="${(svgHeight - diceSize) / 2 + diceSize / 2}" r="${dotRadius}" fill="#d97706"/>
                     <circle cx="${(svgWidth - diceSize) / 2 + diceSize - dotOffset}" cy="${(svgHeight - diceSize) / 2 + diceSize - dotOffset}" r="${dotRadius}" fill="#d97706"/>
@@ -549,7 +554,6 @@
             const svg = `
                 <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#f8fafc; border-radius: 8px;">
                     <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#f8fafc" rx="8" ry="8"/>
-                    
                     <defs>
                         <clipPath id="clipA">
                             <circle cx="${centerX - overlapOffset}" cy="${centerY}" r="${radius}"/>
@@ -558,17 +562,14 @@
                             <circle cx="${centerX + overlapOffset}" cy="${centerY}" r="${radius}"/>
                         </clipPath>
                     </defs>
-
                     <g clip-path="url(#clipA)">
                         <circle cx="${centerX + overlapOffset}" cy="${centerY}" r="${radius}" fill="#bfdbfe"/>
                     </g>
                     <g clip-path="url(#clipB)">
                         <circle cx="${centerX - overlapOffset}" cy="${centerY}" r="${radius}" fill="#bfdbfe"/>
                     </g>
-
                     <circle cx="${centerX - overlapOffset}" cy="${centerY}" r="${radius}" fill="none" stroke="#3b82f6" stroke-width="3"/>
                     <circle cx="${centerX + overlapOffset}" cy="${centerY}" r="${radius}" fill="none" stroke="#3b82f6" stroke-width="3"/>
-                    
                     <text x="${centerX - overlapOffset - radius + 15}" y="${centerY - radius - 10}" font-family="Inter, sans-serif" font-size="24" fill="#1e40af">A</text>
                     <text x="${centerX + overlapOffset + radius - 15}" y="${centerY - radius - 10}" font-family="Inter, sans-serif" font-size="24" fill="#1e40af" text-anchor="end">B</text>
                 </svg>
@@ -582,19 +583,13 @@
             const padding = 50;
             const xAxisY = svgHeight - padding;
             const yAxisX = padding;
-            // Corrected to use centerX and centerY if they are defined globally, or calculate locally
-            const localCenterX = svgWidth / 2; 
-            const localCenterY = svgHeight / 2;
-
 
             const svg = `
                 <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#f8fafc; border-radius: 8px;">
                     <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#f8fafc" rx="8" ry="8"/>
                     <line x1="${yAxisX}" y1="${xAxisY}" x2="${svgWidth - padding / 2}" y2="${xAxisY}" stroke="#334155" stroke-width="2"/>
                     <line x1="${yAxisX}" y1="${xAxisY}" x2="${yAxisX}" y2="${padding / 2}" stroke="#334155" stroke-width="2"/>
-                    
                     <line x1="${yAxisX + 20}" y1="${xAxisY - 20}" x2="${svgWidth - padding - 20}" y2="${padding + 20}" stroke="#ef4444" stroke-width="4"/>
-
                     <text x="${svgWidth - padding / 2 + 10}" y="${xAxisY + 10}" font-family="Inter, sans-serif" font-size="16" fill="#334155">X</text>
                     <text x="${yAxisX + 10}" y="${padding / 2 - 5}" font-family="Inter, sans-serif" font-size="16" fill="#334155" text-anchor="start">Y</text>
                     <text x="${yAxisX - 10}" y="${xAxisY + 20}" font-family="Inter, sans-serif" font-size="16" fill="#334155">0</text>
@@ -615,7 +610,6 @@
                     <path d="M 200 70 C 220 50, 250 50, 270 70 L 280 100 C 260 120, 220 120, 200 100 Z" fill="#90ee90" stroke="#3b82f6" stroke-width="1"/>
                     <path d="M 270 70 C 290 50, 350 50, 370 70 L 380 120 C 360 140, 300 140, 280 120 Z" fill="#90ee90" stroke="#3b82f6" stroke-width="1"/>
                     <path d="M 320 180 C 330 200, 350 200, 360 180 L 370 150 C 350 130, 330 130, 320 150 Z" fill="#90ee90" stroke="#3b82f6" stroke-width="1"/>
-
                     <circle cx="200" cy="180" r="30" fill="#ef4444" opacity="0.6"/>
                     <text x="200" y="185" font-family="Inter, sans-serif" font-size="24" fill="#ffffff" text-anchor="middle" font-weight="bold">A</text>
                 </svg>
@@ -657,11 +651,11 @@
             { subject: { hi: "गणित", en: "Math" }, id: "math1", image: "pythagorean_theorem_generated", question: { hi: "इस समकोण त्रिभुज में, यदि आधार 3 इकाई और लंब 4 इकाई है, तो कर्ण की लंबाई क्या होगी?", en: "In this right-angled triangle, if the base is 3 units and the perpendicular is 4 units, what will be the length of the hypotenuse?" }, options: { hi: ["5 इकाई", "6 इकाई", "7 इकाई", "8 इकाई", "9 इकाई"], en: ["5 units", "6 units", "7 units", "8 units", "9 units"] }, answer: { hi: "5 इकाई", en: "5 units" } },
             { subject: { hi: "गणित", en: "Math" }, id: "math2", image: "pie_chart_distribution", question: { hi: "यह पाई चार्ट एक कक्षा में छात्रों के पसंदीदा रंगों का वितरण दर्शाता है। यदि कुल 40 छात्र हैं, और नीला रंग 25% है, तो कितने छात्रों को नीला रंग पसंद है?", en: "This pie chart shows the distribution of students' favorite colors in a class. If there are a total of 40 students, and blue is 25%, how many students like blue?" }, options: { hi: ["8", "10", "12", "15", "20"], en: ["8", "10", "12", "15", "20"] }, answer: { hi: "10", en: "10" } },
             { subject: { hi: "गणित", en: "Math" }, id: "math3", image: "geometric_sequence", question: { hi: "इस ज्यामितीय पैटर्न को देखें। यदि पैटर्न त्रिकोणीय संख्याओं (1, 3, 6, 10, ...) का अनुसरण करता है, तो अगली आकृति में कितने वृत्त होंगे?", en: "Look at this geometric pattern. If the pattern follows triangular numbers (1, 3, 6, 10, ...), how many circles will be in the next figure?" }, options: { hi: ["10", "12", "15", "16", "18"], en: ["10", "12", "15", "16", "18"] }, answer: { hi: "15", en: "15" } },
-            { subject: { hi: "गणित", en: "Math" }, id: "math4", image: "coordinate_plane_point_generated", question: { hi: "इस निर्देशांक तल पर बिंदु A के निर्देशांक क्या हैं?", en: "What are the coordinates of point A on this coordinate plane?" }, options: { hi: ["(2, 3)", "(3, 2)", "(-2, 3)", "(3, -2)", "(2, -3)"], en: ["(2, 3)", "(3, 2)", "(-2, 3)", "(3, -2)", "(2, -3)"] }, answer: { hi: "(2, 3)", en: "(2, 3)" } }, // Assuming point A is at (2,3)
+            { subject: { hi: "गणित", en: "Math" }, id: "math4", image: "coordinate_plane_point_generated", question: { hi: "इस निर्देशांक तल पर बिंदु A के निर्देशांक क्या हैं?", en: "What are the coordinates of point A on this coordinate plane?" }, options: { hi: ["(2, 3)", "(3, 2)", "(-2, 3)", "(3, -2)", "(2, -3)"], en: ["(2, 3)", "(3, 2)", "(-2, 3)", "(3, -2)", "(2, -3)"] }, answer: { hi: "(2, 3)", en: "(2, 3)" } }, 
             { subject: { hi: "गणित", en: "Math" }, id: "math5", image: "area_of_rectangle_generated", question: { hi: "इस आयत की लंबाई 8 सेमी और चौड़ाई 5 सेमी है। इसका क्षेत्रफल क्या होगा?", en: "The length of this rectangle is 8 cm and the width is 5 cm. What is its area?" }, options: { hi: ["13 वर्ग सेमी", "26 वर्ग सेमी", "40 वर्ग सेमी", "80 वर्ग सेमी", "30 वर्ग सेमी"], en: ["13 sq cm", "26 sq cm", "40 sq cm", "80 sq cm", "30 sq cm"] }, answer: { hi: "40 वर्ग सेमी", en: "40 sq cm" } },
 
             // Level 3 (Geography) - Dynamic image for geo1
-            { subject: { hi: "भूगोल", en: "Geography" }, id: "geo1", image: "world_map_climate_zones_generated", question: { hi: "इस विश्व मानचित्र पर दिखाए गए 'A' क्षेत्र में आमतौर पर किस प्रकार की जलवायु पाई जाती है?", en: "What type of climate is typically found in the 'A' region shown on this world map?" }, options: { hi: ["ध्रुवीय", "भूमध्यसागरीय", "उष्णकटिबंधीय", "शुष्क", "समशीतोष्ण"], en: ["Polar", "Mediterranean", "Tropical", "Arid", "Temperate"] }, answer: { hi: "उष्णकटिबंधीय", en: "Tropical" } }, // 'A' points to equatorial region
+            { subject: { hi: "भूगोल", en: "Geography" }, id: "geo1", image: "world_map_climate_zones_generated", question: { hi: "इस विश्व मानचित्र पर दिखाए गए 'A' क्षेत्र में आमतौर पर किस प्रकार की जलवायु पाई जाती है?", en: "What type of climate is typically found in the 'A' region shown on this world map?" }, options: { hi: ["ध्रुवीय", "भूमध्यसागरीय", "उष्णकटिबंधीय", "शुष्क", "समशीतोष्ण"], en: ["Polar", "Mediterranean", "Tropical", "Arid", "Temperate"] }, answer: { hi: "उष्णकटिबंधीय", en: "Tropical" } }, 
             { subject: { hi: "भूगोल", en: "Geography" }, id: "geo2", image: "river_delta", question: { hi: "यह चित्र एक नदी के मुहाने पर बनने वाली किस भौगोलिक आकृति को दर्शाता है, जो तलछट के जमाव से बनती है?", en: "What geographical feature formed by sediment deposition at the mouth of a river does this image show?" }, options: { hi: ["झील", "घाटी", "डेल्टा", "प्रपात", "मुहाना"], en: ["Lake", "Valley", "Delta", "Waterfall", "Estuary"] }, answer: { hi: "डेल्टा", en: "Delta" } },
             { subject: { hi: "भूगोल", en: "Geography" }, id: "geo3", image: "tectonic_plates_map", question: { hi: "यह मानचित्र पृथ्वी की किन संरचनाओं को दर्शाता है, जो भूकंप और ज्वालामुखी गतिविधियों का कारण बनती हैं?", en: "What Earth structures, responsible for earthquakes and volcanic activity, does this map show?" }, options: { hi: ["महासागर धाराएँ", "पवन पेटियाँ", "टेक्टोनिक प्लेटें", "जलवायु क्षेत्र", "पर्वत श्रृंखलाएँ"], en: ["Ocean Currents", "Wind Belts", "Tectonic Plates", "Climate Zones", "Mountain Ranges"] }, answer: { hi: "टेक्टोनिक प्लेटें", en: "Tectonic Plates" } },
             { subject: { hi: "भूगोल", en: "Geography" }, id: "geo4", image: "desert_oasis", question: { hi: "इस शुष्क परिदृश्य में पानी का यह स्रोत क्या कहलाता है, जो रेगिस्तान में जीवन का समर्थन करता है?", en: "What is this source of water in an arid landscape called, which supports life in the desert?" }, options: { hi: ["झील", "नदी", "मरुद्यान (ओएसिस)", "कुआँ", "तालाब"], en: ["Lake", "River", "Oasis", "Well", "Pond"] }, answer: { hi: "मरुद्यान (ओएसिस)", en: "Oasis" } },
@@ -685,7 +679,7 @@
             { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk1", image: "statue_of_liberty", question: { hi: "यह प्रसिद्ध स्मारक कहाँ स्थित है और यह किस देश को उपहार में दिया गया था?", en: "Where is this famous monument located and which country was it gifted to?" }, options: { hi: ["लंदन - यूनाइटेड किंगडम", "पेरिस - फ्रांस", "न्यूयॉर्क - संयुक्त राज्य अमेरिका", "बर्लिन - जर्मनी", "टोक्यो - जापान"], en: ["London - United Kingdom", "Paris - France", "New York - United States", "Berlin - Germany", "Tokyo - Japan"] }, answer: { hi: "न्यूयॉर्क - संयुक्त राज्य अमेरिका", en: "New York - United States" } },
             { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk2", image: "map_of_africa", question: { hi: "इस महाद्वीप पर स्थित सबसे ऊँचा पर्वत कौन सा है?", en: "What is the highest mountain located on this continent?" }, options: { hi: ["माउंट एवरेस्ट", "माउंट किलिमंजारो", "माउंट फ़ूजी", "माउंट ब्लैंक", "माउंट मैकिनले"], en: ["Mount Everest", "Mount Kilimanjaro", "Mount Fuji", "Mount Blanc", "Mount McKinley"] }, answer: { hi: "माउंट किलिमंजारो", en: "Mount Kilimanjaro" } },
             { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk3", image: "national_bird_peacock", question: { hi: "यह भारत का राष्ट्रीय पक्षी है। इसकी मुख्य विशेषता क्या है?", en: "This is the national bird of India. What is its main characteristic?" }, options: { hi: ["यह बहुत तेज़ दौड़ता है", "यह अपनी सुंदर पूंछ के पंखों के लिए जाना जाता है", "यह रात में शिकार करता है", "यह पानी में रहता है", "यह उड़ नहीं सकता"], en: ["It runs very fast", "It is known for its beautiful tail feathers", "It hunts at night", "It lives in water", "It cannot fly"] }, answer: { hi: "यह अपनी सुंदर पूंछ के पंखों के लिए जाना जाता है", en: "It is known for its beautiful tail feathers" } },
-            { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk4", image: "seven_wonders_colosseum", question: { hi: "यह प्राचीन अखाड़ा किस शहर में स्थित है और यह किस साम्राज्य का प्रतीक है?", en: ["एथेंस - ग्रीक साम्राज्य", "रोम - रोमन साम्राज्य", "इस्तांबुल - ओटोमन साम्राज्य", "काहिरा - मिस्र साम्राज्य", "बीजिंग - चीनी साम्राज्य"], en: ["Athens - Greek Empire", "Rome - Roman Empire", "Istanbul - Ottoman Empire", "Cairo - Egyptian Empire", "Beijing - Chinese Empire"] }, answer: { hi: "रोम - रोमन साम्राज्य", en: "Rome - Roman Empire" } },
+            { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk4", image: "seven_wonders_colosseum", question: { hi: "यह प्राचीन अखाड़ा किस शहर में स्थित है और यह किस साम्राज्य का प्रतीक है?", en: "In which city is this ancient amphitheater located, and which empire does it symbolize?" }, options: { hi: ["एथेंस - ग्रीक साम्राज्य", "रोम - रोमन साम्राज्य", "इस्तांबुल - ओटोमन साम्राज्य", "काहिरा - मिस्र साम्राज्य", "बीजिंग - चीनी साम्राज्य"], en: ["Athens - Greek Empire", "Rome - Roman Empire", "Istanbul - Ottoman Empire", "Cairo - Egyptian Empire", "Beijing - Chinese Empire"] }, answer: { hi: "रोम - रोमन साम्राज्य", en: "Rome - Roman Empire" } },
             { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk5", image: "solar_system_planets", question: { hi: "इस सौरमंडल के चित्र में, सूर्य से दूसरा ग्रह कौन सा है?", en: "In this image of the solar system, which is the second planet from the Sun?" }, options: { hi: ["मंगल", "बृहस्पति", "शुक्र", "पृथ्वी", "शनि"], en: ["Mars", "Jupiter", "Venus", "Earth", "Saturn"] }, answer: { hi: "शुक्र", en: "Venus" } },
 
             // Level 7 (Language)
@@ -703,11 +697,11 @@
             { subject: { hi: "विज्ञान", en: "Science" }, id: "science10", image: "dna_replication_process", question: { hi: "यह चित्र DNA प्रतिकृति की प्रक्रिया को दर्शाता है। इस प्रक्रिया का मुख्य उद्देश्य क्या है?", en: "This image shows the process of DNA replication. What is the main purpose of this process?" }, options: { hi: ["प्रोटीन संश्लेषण", "कोशिका विभाजन से पहले आनुवंशिक सामग्री की प्रतिलिपि बनाना", "ऊर्जा उत्पादन", "अपशिष्ट निकालना", "कोशिका की पहचान"], en: ["Protein synthesis", "Copying genetic material before cell division", "Energy production", "Waste removal", "Cell identification"] }, answer: { hi: "कोशिका विभाजन से पहले आनुवंशिक सामग्री की प्रतिलिपि बनाना", en: "Copying genetic material before cell division" } },
 
             // Level 9 (Maths - Advanced) - Dynamic images
-            { subject: { hi: "गणित", en: "Math" }, id: "math6", image: "quadratic_equation_graph", question: { hi: "यह ग्राफ एक द्विघात समीकरण को दर्शाता है। इस समीकरण के कितने वास्तविक मूल (roots) हैं?", en: "This graph shows a quadratic equation. How many real roots does this equation have?" }, options: { hi: ["कोई नहीं", "एक", "दो", "तीन", "अनंत"], en: ["None", "One", "Two", "Three", "Infinite"] }, answer: { hi: "दो", en: "Two" } }, // Assuming a parabola crossing x-axis twice
-            { subject: { hi: "गणित", en: "Math" }, id: "math7", image: "volume_of_cylinder_generated", question: { hi: "इस बेलन की त्रिज्या 3 सेमी और ऊँचाई 10 सेमी है। इसका आयतन क्या होगा? (π ≈ 3.14)", en: "The radius of this cylinder is 3 cm and the height is 10 cm. What is its volume? (π ≈ 3.14)" }, options: { hi: ["30 घन सेमी", "90 घन सेमी", "282.6 घन सेमी", "94.2 घन सेमी", "188.4 घन सेमी"], en: ["30 cubic cm", "90 cubic cm", "282.6 cubic cm", "94.2 cubic cm", "188.4 cubic cm"] }, answer: { hi: "282.6 घन सेमी", en: "282.6 cubic cm" } }, // Volume = π * r^2 * h = 3.14 * 3^2 * 10 = 3.14 * 9 * 10 = 282.6
+            { subject: { hi: "गणित", en: "Math" }, id: "math6", image: "quadratic_equation_graph", question: { hi: "यह ग्राफ एक द्विघात समीकरण को दर्शाता है। इस समीकरण के कितने वास्तविक मूल (roots) हैं?", en: "This graph shows a quadratic equation. How many real roots does this equation have?" }, options: { hi: ["कोई नहीं", "एक", "दो", "तीन", "अनंत"], en: ["None", "One", "Two", "Three", "Infinite"] }, answer: { hi: "दो", en: "Two" } }, 
+            { subject: { hi: "गणित", en: "Math" }, id: "math7", image: "volume_of_cylinder_generated", question: { hi: "इस बेलन की त्रिज्या 3 सेमी और ऊँचाई 10 सेमी है। इसका आयतन क्या होगा? (π ≈ 3.14)", en: "The radius of this cylinder is 3 cm and the height is 10 cm. What is its volume? (π ≈ 3.14)" }, options: { hi: ["30 घन सेमी", "90 घन सेमी", "282.6 घन सेमी", "94.2 घन सेमी", "188.4 घन सेमी"], en: ["30 cubic cm", "90 cubic cm", "282.6 cubic cm", "94.2 cubic cm", "188.4 cubic cm"] }, answer: { hi: "282.6 घन सेमी", en: "282.6 cubic cm" } }, 
             { subject: { hi: "गणित", en: "Math" }, id: "math8", image: "probability_dice_roll_generated", question: { hi: "यह एक पासे को दर्शाता है। एक पासे को एक बार फेंकने पर सम संख्या आने की क्या प्रायिकता है?", en: "This depicts a die. What is the probability of rolling an even number when a die is thrown once?" }, options: { hi: ["1/6", "1/3", "1/2", "2/3", "5/6"], en: ["1/6", "1/3", "1/2", "2/3", "5/6"] }, answer: { hi: "1/2", en: "1/2" } },
-            { subject: { hi: "गणित", en: "Math" }, id: "math9", image: "set_theory_venn_diagram_generated", question: { hi: "इस वेन आरेख में, छायांकित क्षेत्र (shaded region) क्या दर्शाता है?", en: "In this Venn diagram, what does the shaded region represent?" }, options: { hi: ["A union B", "A intersection B", "A minus B", "B minus A", "A का पूरक"], en: ["A union B", "A intersection B", "A minus B", "B minus A", "Complement of A"] }, answer: { hi: "A intersection B", en: "A intersection B" } }, // Assuming shaded is the overlap
-            { subject: { hi: "गणित", en: "Math" }, id: "math10", image: "slope_of_line_graph_generated", question: { hi: "इस सीधी रेखा का ढलान (slope) क्या है?", en: "What is the slope of this straight line?" }, options: { hi: ["धनात्मक", "ऋणात्मक", "शून्य", "अपरिभाषित", "1"], en: ["Positive", "Negative", "Zero", "Undefined", "1"] }, answer: { hi: "धनात्मक", en: "Positive" } }, // Assuming an upward sloping line
+            { subject: { hi: "गणित", en: "Math" }, id: "math9", image: "set_theory_venn_diagram_generated", question: { hi: "इस वेन आरेख में, छायांकित क्षेत्र (shaded region) क्या दर्शाता है?", en: "In this Venn diagram, what does the shaded region represent?" }, options: { hi: ["A union B", "A intersection B", "A minus B", "B minus A", "A का पूरक"], en: ["A union B", "A intersection B", "A minus B", "B minus A", "Complement of A"] }, answer: { hi: "A intersection B", en: "A intersection B" } }, 
+            { subject: { hi: "गणित", en: "Math" }, id: "math10", image: "slope_of_line_graph_generated", question: { hi: "इस सीधी रेखा का ढलान (slope) क्या है?", en: "What is the slope of this straight line?" }, options: { hi: ["धनात्मक", "ऋणात्मक", "शून्य", "अपरिभाषित", "1"], en: ["Positive", "Negative", "Zero", "Undefined", "1"] }, answer: { hi: "धनात्मक", en: "Positive" } }, 
 
             // Level 10 (GK - Advanced)
             { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk6", image: "united_nations_building", question: { hi: "यह इमारत किस अंतर्राष्ट्रीय संगठन का मुख्यालय है, जिसका उद्देश्य विश्व शांति और सुरक्षा बनाए रखना है?", en: "This building is the headquarters of which international organization, whose objective is to maintain world peace and security?" }, options: { hi: ["विश्व बैंक", "अंतर्राष्ट्रीय मुद्रा कोष", "संयुक्त राष्ट्र", "विश्व व्यापार संगठन", "नाटो"], en: ["World Bank", "International Monetary Fund", "United Nations", "World Trade Organization", "NATO"] }, answer: { hi: "संयुक्त राष्ट्र", en: "United Nations" } },
@@ -718,7 +712,6 @@
         ];
 
         // Image map for local image paths and generated SVG functions
-        // Function references should be stored, not their return values, so they are called when needed.
         const imageMap = {
             // Science
             "human_circulatory_system": "images/human_circulatory_system.png",
@@ -734,63 +727,62 @@
             "probability_dice_roll_generated": generateProbabilityDiceRollSVG,
             "set_theory_venn_diagram_generated": generateSetTheoryVennDiagramSVG,
             "slope_of_line_graph_generated": generateSlopeOfLineGraphSVG,
-            // Math (Using placeholders, replace with actual image paths or SVG functions if available)
-            "pie_chart_distribution": "https://placehold.co/400x250/FFD700/000000?text=Pie+Chart",
-            "geometric_sequence": "https://placehold.co/400x250/ADD8E6/000000?text=Geometric+Sequence",
-            "quadratic_equation_graph": "https://placehold.co/400x250/90EE90/000000?text=Quadratic+Graph",
+            // Math (Still needs image)
+            "pie_chart_distribution": "images/pie_chart_distribution.png",
+            "geometric_sequence": "images/geometric_sequence.png",
+            "quadratic_equation_graph": "images/quadratic_equation_graph.png",
             // Geography (Generated for geo1)
             "world_map_climate_zones_generated": generateWorldMapClimateZonesSVG,
-            // Geography (Using placeholders)
-            "river_delta": "https://placehold.co/400x250/D3D3D3/000000?text=River+Delta",
-            "tectonic_plates_map": "https://placehold.co/400x250/FFB6C1/000000?text=Tectonic+Plates",
-            "desert_oasis": "https://placehold.co/400x250/F0E68C/000000?text=Desert+Oasis",
-            "mountain_formation": "https://placehold.co/400x250/B0C4DE/000000?text=Mountain+Formation",
-            // History (Using placeholders)
-            "great_pyramid_giza": "https://placehold.co/400x250/F4A460/000000?text=Pyramid+of+Giza",
-            "ashoka_pillar": "https://placehold.co/400x250/8FBC8F/000000?text=Ashoka+Pillar",
-            "indus_valley_artifacts": "https://placehold.co/400x250/D8BFD8/000000?text=Indus+Valley+Artifacts",
-            "mughal_miniature_painting": "https://placehold.co/400x250/CD853F/000000?text=Mughal+Painting",
-            "harappan_drainage_system": "https://placehold.co/400x250/A9A9A9/000000?text=Harappan+Drainage",
-            // Computer/IT (Generated for it3, others are placeholders)
-            "network_topology": "https://placehold.co/400x250/87CEEB/000000?text=Network+Topology",
-            "flowchart_decision": "https://placehold.co/400x250/FFDAB9/000000?text=Flowchart+Decision",
+            // Geography (Still needs image)
+            "river_delta": "images/river_delta.png",
+            "tectonic_plates_map": "images/tectonic_plates_map.png",
+            "desert_oasis": "images/desert_oasis.png",
+            "mountain_formation": "images/mountain_formation.png",
+            // History
+            "great_pyramid_giza": "images/great_pyramid_giza.png",
+            "ashoka_pillar": "images/ashoka_pillar.png",
+            "indus_valley_artifacts": "images/indus_valley_artifacts.png",
+            "mughal_miniature_painting": "images/mughal_miniature_painting.png",
+            "harappan_drainage_system": "images/harappan_drainage_system.png",
+            // Computer/IT (Generated for it3)
+            "network_topology": "images/network_topology.png",
+            "flowchart_decision": "images/flowchart_decision.png",
             "simple_python_loop_generated": generateSimplePythonLoopSVG,
-            "cloud_computing_diagram": "https://placehold.co/400x250/E0BBE4/000000?text=Cloud+Computing",
-            "database_icon": "https://placehold.co/400x250/C0C0C0/000000?text=Database+Icon",
-            // General Knowledge (Using placeholders)
-            "statue_of_liberty": "https://placehold.co/400x250/B0E0E6/000000?text=Statue+of+Liberty",
-            "map_of_africa": "https://placehold.co/400x250/F5DEB3/000000?text=Map+of+Africa",
-            "national_bird_peacock": "https://placehold.co/400x250/48D1CC/000000?text=Peacock",
-            "seven_wonders_colosseum": "https://placehold.co/400x250/DAA520/000000?text=Colosseum",
-            "solar_system_planets": "https://placehold.co/400x250/8A2BE2/FFFFFF?text=Solar+System",
-            // Language (Using placeholders)
-            "person_deep_thought": "https://placehold.co/400x250/DDA0DD/000000?text=Deep+Thought",
-            "children_playing_happily": "https://placehold.co/400x250/98FB98/000000?text=Children+Playing",
-            "old_book_open": "https://placehold.co/400x250/F5DEB3/000000?text=Old+Book",
-            "person_speaking_microphone": "https://placehold.co/400x250/FFC0CB/000000?text=Speaking+at+Mic",
-            "puzzle_pieces_fitting": "https://placehold.co/400x250/ADD8E6/000000?text=Puzzle+Pieces",
-            // Science - Advanced (Using placeholders)
-            "human_brain_lobes": "https://placehold.co/400x250/DDA0DD/000000?text=Brain+Lobes",
-            "water_cycle_diagram": "https://placehold.co/400x250/87CEFA/000000?text=Water+Cycle",
-            "food_chain_web": "https://placehold.co/400x250/98FB98/000000?text=Food+Web",
-            "solar_eclipse_diagram": "https://placehold.co/400x250/6A5ACD/FFFFFF?text=Solar+Eclipse",
-            "dna_replication_process": "https://placehold.co/400x250/FF6347/FFFFFF?text=DNA+Replication",
-            // GK - Advanced (Using placeholders)
-            "united_nations_building": "https://placehold.co/400x250/B0C4DE/000000?text=UN+Building",
-            "amazon_river_forest": "https://placehold.co/400x250/228B22/FFFFFF?text=Amazon+Forest",
-            "india_gate_delhi": "https://placehold.co/400x250/CD5C5C/FFFFFF?text=India+Gate",
-            "iss_in_space": "https://placehold.co/400x250/4682B4/FFFFFF?text=ISS",
-            "great_barrier_reef": "https://placehold.co/400x250/00CED1/FFFFFF?text=Great+Barrier+Reef",
+            "cloud_computing_diagram": "images/cloud_computing_diagram.png",
+            "database_icon": "images/database_icon.png",
+            // General Knowledge
+            "statue_of_liberty": "images/statue_of_liberty.png",
+            "map_of_africa": "images/map_of_africa.png",
+            "national_bird_peacock": "images/national_bird_peacock.png",
+            "seven_wonders_colosseum": "images/seven_wonders_colosseum.png",
+            "solar_system_planets": "images/solar_system_planets.png",
+            // Language
+            "person_deep_thought": "images/person_deep_thought.png",
+            "children_playing_happily": "images/children_playing_happily.png",
+            "old_book_open": "images/old_book_open.png",
+            "person_speaking_microphone": "images/person_speaking_microphone.png",
+            "puzzle_pieces_fitting": "images/puzzle_pieces_fitting.png",
+            // Science - Advanced
+            "human_brain_lobes": "images/human_brain_lobes.png",
+            "water_cycle_diagram": "images/water_cycle_diagram.png",
+            "food_chain_web": "images/food_chain_web.png",
+            "solar_eclipse_diagram": "images/solar_eclipse_diagram.png",
+            "dna_replication_process": "images/dna_replication_process.png",
+            // GK - Advanced
+            "united_nations_building": "images/united_nations_building.png",
+            "amazon_river_forest": "images/amazon_river_forest.png",
+            "india_gate_delhi": "images/india_gate_delhi.png",
+            "iss_in_space": "images/iss_in_space.png",
+            "great_barrier_reef": "images/great_barrier_reef.png",
         };
-
 
         // Quiz state variables
         let shuffledQuestions = [];
-        let currentQuestionGlobalIndex = 0; // Index in the full 50 questions array
+        let currentQuestionGlobalIndex = 0; 
         let currentLevel = 1;
         let levelCorrectAnswers = 0;
         let totalCorrectAnswers = 0;
-        let timer = 23; // 23 seconds per question
+        let timer = 23; 
         let timerInterval;
         const QUESTIONS_PER_LEVEL = 5;
         const TOTAL_LEVELS = 10;
@@ -799,11 +791,11 @@
         const quizIntro = document.getElementById('quiz-intro');
         const languageSelectionScreen = document.getElementById('language-selection-screen');
         const quizQuestionsScreen = document.getElementById('quiz-questions');
-        const quizResultsScreen = document.getElementById('quiz-results');
+        const quizResultsScreen = document.getElementById('quiz-results'); 
         const startQuizButton = document.getElementById('start-quiz-button');
         const selectHindiButton = document.getElementById('select-hindi-button');
         const selectEnglishButton = document.getElementById('select-english-button');
-        // const restartQuizButton = document.getElementById('restart-quiz-button'); // This ID is for the fallback results screen
+        const restartQuizButton = document.getElementById('restart-quiz-button'); 
         const currentLevelDisplay = document.getElementById('current-level-display');
         const currentQuestionNumberSpan = document.getElementById('current-question-number');
         const questionSubjectSpan = document.getElementById('question-subject');
@@ -815,8 +807,15 @@
         const messageBox = document.getElementById('message-box');
         const messageText = document.getElementById('message-text');
         const timerProgressBar = document.getElementById('timer-progress');
-        const congratulationsModal = document.getElementById('congratulations-modal');
-        const confettiContainer = document.getElementById('confetti-container');
+        
+        // New Final Completion Modal elements
+        const finalCompletionModal = document.getElementById('final-completion-modal');
+        const finalCompletionModalContent = document.getElementById('final-completion-modal-content');
+        const finalConfettiContainer = document.getElementById('final-confetti-container');
+        const finalButtonRedirect1 = document.getElementById('final-button-redirect1');
+        const finalButtonRedirect2 = document.getElementById('final-button-redirect2');
+        const finalPlayAgainButton = document.getElementById('final-play-again-button');
+
 
         // Level Result Screen elements
         const levelResultScreen = document.getElementById('level-result-screen');
@@ -830,10 +829,10 @@
 
 
         // Ensure all essential elements are found
-        if (!quizIntro || !languageSelectionScreen || !quizQuestionsScreen || !startQuizButton || !timerProgressBar || !optionsContainer || !levelResultScreen || !selectHindiButton || !selectEnglishButton || !congratulationsModal) {
+        if (!quizIntro || !languageSelectionScreen || !quizQuestionsScreen || !startQuizButton || !timerProgressBar || !optionsContainer || !levelResultScreen || !selectHindiButton || !selectEnglishButton || !finalCompletionModal) {
             console.error("Error: One or more essential DOM elements not found. Check HTML IDs.");
             // Display a user-friendly error message if critical elements are missing
-            document.body.innerHTML = '<div class="flex items-center justify-center min-h-screen bg-red-100 text-red-800 text-xl font-bold p-4 text-center">क्षमा करें, प्रश्नोत्तरी लोड करने में एक महत्वपूर्ण त्रुटि हुई है। कृपया पृष्ठ को रीफ़्रेश करें या बाद में पुनः प्रयास करें।<br><br>Sorry, a critical error occurred while loading the quiz. Please refresh the page or try again later.</div>';
+            document.body.innerHTML = '<div class="flex items-center justify-center min-h-screen bg-red-100 text-red-800 text-xl font-bold p-4 text-center">क्षमा करें, प्रश्नोत्तरी लोड करने में एक महत्वपूर्ण त्रुटि हुई है। कृपया बाद में पुनः प्रयास करें। <br/> Sorry, a critical error occurred while loading the quiz. Please try again later.</div>';
         }
 
         /**
@@ -856,8 +855,7 @@
          * Shuffles the quiz questions randomly.
          */
         function shuffleQuestions() {
-            shuffledQuestions = [...quizQuestions]; // Create a shallow copy
-            // Shuffle the entire array once at the start of the quiz
+            shuffledQuestions = [...quizQuestions]; 
             for (let i = shuffledQuestions.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [shuffledQuestions[i], shuffledQuestions[j]] = [shuffledQuestions[j], shuffledQuestions[i]];
@@ -869,19 +867,19 @@
          * Starts the timer for the current question.
          */
         function startTimer() {
-            clearInterval(timerInterval); // Clear any existing timer
-            timer = 23; // Reset timer for new question
-            updateTimerDisplay(); // Update display immediately
+            clearInterval(timerInterval); 
+            timer = 23; 
+            updateTimerDisplay(); 
             timerInterval = setInterval(() => {
                 timer--;
                 updateTimerDisplay();
                 if (timer <= 0) {
                     clearInterval(timerInterval);
-                    // Time's up, hide image and move to next question (consider as incorrect)
-                    questionImage.classList.add('image-hidden');
+                    console.log("Time's up for question:", shuffledQuestions[currentQuestionGlobalIndex]?.id || "N/A");
+                    // Immediately hide the image when time runs out
                     questionImage.classList.remove('image-visible');
-                    console.log("Time's up for question:", shuffledQuestions[currentQuestionGlobalIndex].id);
-                    handleAnswerSelect(null, null); // Pass null to indicate time ran out
+                    questionImage.classList.add('image-hidden');
+                    handleAnswerSelect(null, null); 
                 }
             }, 1000);
         }
@@ -892,7 +890,6 @@
         function updateTimerDisplay() {
             const percentage = (timer / 23) * 100;
             timerProgressBar.style.width = `${percentage}%`;
-            // Change color based on time remaining
             if (percentage < 30) {
                 timerProgressBar.style.backgroundColor = '#ef4444'; // red-500
             } else if (percentage < 60) {
@@ -914,46 +911,36 @@
                 const currentQuestion = shuffledQuestions[currentQuestionGlobalIndex];
                 if (!currentQuestion) {
                     console.error("Error: currentQuestion is undefined at index", currentQuestionGlobalIndex);
-                    showResults(); // Fallback to overall results if no question
+                    showResults(); 
                     return;
                 }
 
-                // Update level display
                 currentLevelDisplay.textContent = currentLevel;
                 currentQuestionNumberSpan.textContent = (currentQuestionGlobalIndex % QUESTIONS_PER_LEVEL) + 1;
                 questionSubjectSpan.textContent = currentQuestion.subject[currentLanguage];
 
-                // Image switching: Ensure old image is hidden, then load new one.
-                // The old image should have been hidden by handleAnswerSelect or startTimer (on timeout).
-                // This ensures the image element is ready for the new source.
-                questionImage.classList.add('image-hidden');
-                questionImage.classList.remove('image-visible');
+                // Set new image source
+                if (typeof imageMap[currentQuestion.image] === 'function') {
+                    questionImage.src = imageMap[currentQuestion.image](); 
+                } else {
+                    questionImage.src = imageMap[currentQuestion.image]; 
+                }
+                questionImage.alt = `Question Image for ${currentQuestion.id}`;
                 
-                // Set new image source after a short delay to allow for fade-out/DOM update
-                setTimeout(() => {
-                    if (typeof imageMap[currentQuestion.image] === 'function') {
-                        questionImage.src = imageMap[currentQuestion.image](); // Call the function to get SVG data URL
-                    } else {
-                        questionImage.src = imageMap[currentQuestion.image] || `https://placehold.co/400x250/CCCCCC/666666?text=${encodeURIComponent(langText[currentLanguage].imageNotAvailable)}`;
-                    }
-                    questionImage.alt = `Question Image for ${currentQuestion.subject[currentLanguage]} - ${ (currentQuestionGlobalIndex % QUESTIONS_PER_LEVEL) + 1}`;
-                    questionImage.classList.remove('image-hidden'); // Make new image visible
-                    questionImage.classList.add('image-visible');   // Add visible class for transition
-                }, 50); // Reduced delay for quicker appearance
+                // Make new image visible (it was hidden by handleAnswerSelect or initially)
+                // The CSS transition on #question-image handles the fade-in
+                questionImage.classList.remove('image-hidden');
+                questionImage.classList.add('image-visible');
                 
                 questionText.textContent = currentQuestion.question[currentLanguage];
+                optionsContainer.innerHTML = ''; 
 
-                optionsContainer.innerHTML = ''; // Clear previous options
-
-                // Randomize options
                 let optionsToDisplay = [...currentQuestion.options[currentLanguage]];
                 const correctAnswer = currentQuestion.answer[currentLanguage];
-
-                const correctAnswerIndexInOriginal = optionsToDisplay.indexOf(correctAnswer);
-                if (correctAnswerIndexInOriginal > -1) {
-                    optionsToDisplay.splice(correctAnswerIndexInOriginal, 1);
+                const correctAnswerIndex = optionsToDisplay.indexOf(correctAnswer);
+                if (correctAnswerIndex > -1) {
+                    optionsToDisplay.splice(correctAnswerIndex, 1);
                 }
-
                 for (let i = optionsToDisplay.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [optionsToDisplay[i], optionsToDisplay[j]] = [optionsToDisplay[j], optionsToDisplay[i]];
@@ -964,23 +951,20 @@
 
                 optionsToDisplay.forEach((option, index) => {
                     const button = document.createElement('button');
-                    button.textContent = `${String.fromCharCode(65 + index)}. ${option}`; // A. Option1, B. Option2 etc.
+                    button.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
                     button.classList.add(
-                        'quiz-button', 'p-3', 'sm:p-4', 'rounded-lg', 'border-2', 'bg-white', 'text-gray-800',
-                        'border-gray-300', 'hover:bg-blue-50', 'hover:border-blue-400',
-                        'font-medium', 'text-left', 'transition', 'duration-200', 'ease-in-out',
-                        'transform', 'hover:scale-102', 'w-full' // Ensure buttons take full width in their grid cell
+                        'quiz-button', 'p-4', 'rounded-lg', 'border-2', 'bg-white', 'text-gray-800',
+                        'border-gray-300', 'hover:bg-blue-50', 'hover:border-blue-400', 'font-medium',
+                        'text-left', 'transition', 'duration-200', 'ease-in-out', 'transform', 'hover:scale-102'
                     );
                     button.onclick = () => handleAnswerSelect(option, button);
                     optionsContainer.appendChild(button);
                 });
-
                 startTimer();
             } catch (error) {
                 console.error("Error during renderQuiz:", error);
-                showMessage(`Error rendering quiz: ${error.message}. Please try restarting.`);
-                // Optionally, redirect to intro or show a specific error screen
-                // restartQuiz(); 
+                showMessage(langText[currentLanguage].ok); // Using 'ok' as a generic error message placeholder
+                restartQuiz();
             }
         }
 
@@ -990,46 +974,39 @@
          * @param {HTMLElement | null} clickedButton - The button element that was clicked, or null.
          */
         function handleAnswerSelect(option, clickedButton) {
-            clearInterval(timerInterval); // Stop the timer immediately
+            clearInterval(timerInterval); 
 
             // Immediately hide the current question's image
-            questionImage.classList.add('image-hidden');
             questionImage.classList.remove('image-visible');
+            questionImage.classList.add('image-hidden');
 
-            // Disable all options to prevent multiple selections
             Array.from(optionsContainer.children).forEach(btn => {
                 btn.disabled = true;
                 btn.classList.remove('hover:bg-blue-50', 'hover:border-blue-400', 'hover:scale-102');
             });
 
             const currentQuestion = shuffledQuestions[currentQuestionGlobalIndex];
-            const correctAnswer = currentQuestion.answer[currentLanguage];
+            const correctAnswer = currentQuestion.answer[currentLanguage]; 
 
             if (option !== null && option === correctAnswer) {
                 levelCorrectAnswers++;
                 totalCorrectAnswers++;
                 if (clickedButton) {
                     clickedButton.classList.add('bg-green-500', 'text-white', 'border-green-600');
-                    clickedButton.classList.remove('bg-white', 'text-gray-800', 'border-gray-300');
+                    clickedButton.classList.remove('bg-blue-500', 'text-white', 'border-blue-600', 'bg-white', 'text-gray-800', 'border-gray-300');
                 }
             } else {
-                if (clickedButton) { // If an incorrect option was clicked
+                if (clickedButton) {
                     clickedButton.classList.add('bg-red-500', 'text-white', 'border-red-600');
-                    clickedButton.classList.remove('bg-white', 'text-gray-800', 'border-gray-300');
+                    clickedButton.classList.remove('bg-blue-500', 'text-white', 'border-blue-600', 'bg-white', 'text-gray-800', 'border-gray-300');
                 }
-                // Highlight correct answer regardless of choice (or if time ran out)
                 Array.from(optionsContainer.children).forEach(btn => {
-                    // The textContent now includes "A. ", "B. " etc.
-                    const optionTextOnly = btn.textContent.substring(btn.textContent.indexOf('.') + 2);
-                    if (optionTextOnly === correctAnswer) {
+                    if (btn.textContent.includes(correctAnswer)) {
                         btn.classList.add('bg-green-200', 'border-green-400', 'text-green-800');
-                        btn.classList.remove('bg-white', 'text-gray-800', 'border-gray-300');
                     }
                 });
             }
-
-            // Move to the next question after a short delay to show result
-            setTimeout(moveToNextQuestion, 1200); // 1.2 second delay for user to see feedback
+            setTimeout(moveToNextQuestion, 1000); 
         }
 
         /**
@@ -1041,20 +1018,16 @@
 
             const questionsAnsweredInCurrentLevel = currentQuestionGlobalIndex % QUESTIONS_PER_LEVEL;
 
-            if (questionsAnsweredInCurrentLevel === 0 && currentQuestionGlobalIndex > 0) { // End of a level
+            if (questionsAnsweredInCurrentLevel === 0 && currentQuestionGlobalIndex > 0) { 
                 checkLevelCompletion();
             } else if (currentQuestionGlobalIndex < shuffledQuestions.length) {
                 renderQuiz();
             } else { 
-                // This case means all questions are done. If the last level was passed, congrats was shown.
-                // If last level was failed, level result screen was shown.
-                // If somehow we reach here (e.g., fewer than 50 questions and last level not triggering checkLevelCompletion correctly),
-                // show overall results as a fallback.
-                if (!congratulationsModal.classList.contains('hidden') || !levelResultScreen.classList.contains('hidden')) {
-                    // A modal is already showing, do nothing more.
-                } else {
-                    showResults(); // Fallback
-                }
+                // This case implies all questions are done, but might not have been triggered by level completion
+                // (e.g., if total questions isn't a multiple of QUESTIONS_PER_LEVEL)
+                // The final level completion check should handle the true end.
+                // If we reach here, it means the last level was completed.
+                checkLevelCompletion(); // Ensure final level status is processed
             }
         }
 
@@ -1076,14 +1049,16 @@
 
             showLevelResultScreen(levelPassed, levelCorrectAnswers, incorrectCount, percentage);
         }
-        
+
         /**
-         * Displays the level result screen.
+         * Displays the level result screen with appropriate message and buttons.
          */
         function showLevelResultScreen(passed, correctCount, incorrectCount, percentage) {
             hideAllScreens();
             levelResultScreen.classList.remove('hidden');
-            levelResultScreen.classList.add('modal-animate-in');
+            levelResultScreen.querySelector('.modal-animate-in').classList.remove('opacity-0', 'scale-95'); // Ensure animation starts correctly
+            levelResultScreen.querySelector('.modal-animate-in').classList.add('opacity-100', 'scale-100');
+
 
             levelCorrectCount.textContent = correctCount;
             levelIncorrectCount.textContent = incorrectCount;
@@ -1094,17 +1069,17 @@
                 levelResultMessage.classList.remove('text-red-600');
                 levelResultMessage.classList.add('text-green-700');
                 
-                if (currentLevel === TOTAL_LEVELS) {
-                    nextLevelButton.classList.add('hidden');
-                    setTimeout(showCongratulations, 1000); // Delay before showing final congrats
+                if (currentLevel === TOTAL_LEVELS) { 
+                    nextLevelButton.classList.add('hidden'); 
+                    setTimeout(showFinalCompletionPopup, 1000); // Show final popup
                 } else {
-                    nextLevelButton.classList.remove('hidden');
+                     nextLevelButton.classList.remove('hidden'); 
                 }
             } else {
                 levelResultMessage.textContent = langText[currentLanguage].levelFailed(currentLevel);
                 levelResultMessage.classList.remove('text-green-700');
                 levelResultMessage.classList.add('text-red-600');
-                nextLevelButton.classList.add('hidden');
+                nextLevelButton.classList.add('hidden'); 
             }
 
             nextLevelButton.onclick = () => {
@@ -1112,8 +1087,12 @@
                 levelCorrectAnswers = 0; 
                 renderQuiz(); 
             };
-            retryLevelButtonResult.onclick = retryCurrentLevel;
-            homeButtonResult.onclick = restartQuiz;
+            retryLevelButtonResult.onclick = () => {
+                retryCurrentLevel();
+            };
+            homeButtonResult.onclick = () => {
+                restartQuiz(); 
+            };
         }
 
         /**
@@ -1133,45 +1112,48 @@
             hideAllScreens();
             quizResultsScreen.classList.remove('hidden');
             finalScoreSpan.textContent = totalCorrectAnswers;
-            totalQuestionsResultsSpan.textContent = shuffledQuestions.length; 
+            totalQuestionsResultsSpan.textContent = quizQuestions.length; 
             clearInterval(timerInterval); 
-            // Ensure the restart button on this specific screen works
-            const fallbackRestartButton = document.getElementById('restart-quiz-button');
-            if (fallbackRestartButton) {
-                 fallbackRestartButton.onclick = restartQuiz;
-            }
+            updateLanguageUI(); // Ensure text is correct
         }
 
         /**
-         * Displays the updated congratulations modal.
+         * Displays the final level completion popup with animation.
          */
-        function showCongratulations() {
+        function showFinalCompletionPopup() {
             hideAllScreens();
-            updateLanguageUI(); // Ensure modal texts are correct for current language
-            congratulationsModal.classList.remove('hidden');
-            congratulationsModal.classList.add('modal-animate-in');
+            updateLanguageUI(); // Ensure text is correct before showing
+            finalCompletionModal.classList.remove('hidden');
             
-            confettiContainer.innerHTML = ''; // Clear previous confetti
-            for (let i = 0; i < 60; i++) { // More confetti!
+            // Trigger reflow for transition
+            void finalCompletionModalContent.offsetWidth; 
+            finalCompletionModalContent.classList.remove('opacity-0', 'scale-95');
+            finalCompletionModalContent.classList.add('opacity-100', 'scale-100');
+
+
+            finalConfettiContainer.innerHTML = ''; // Clear previous confetti
+            for (let i = 0; i < 70; i++) { // More confetti!
                 const confetti = document.createElement('div');
                 confetti.classList.add('confetti');
                 confetti.style.left = `${Math.random() * 100}%`;
-                const randomColor = `hsl(${Math.random() * 360}, 100%, ${60 + Math.random() * 20}%)`; // Brighter confetti
-                confetti.style.backgroundColor = randomColor;
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 70%)`;
                 confetti.style.animationDelay = `${Math.random() * 5}s`;
-                confetti.style.width = `${8 + Math.random() * 5}px`; // Slightly varied sizes
-                confetti.style.height = confetti.style.width;
-                confetti.style.opacity = Math.random() * 0.5 + 0.5; // Varied opacity
-                confettiContainer.appendChild(confetti);
+                confetti.style.setProperty('--confetti-duration', `${3 + Math.random() * 3}s`); // Vary duration
+                finalConfettiContainer.appendChild(confetti);
             }
-            clearInterval(timerInterval);
+            clearInterval(timerInterval); 
+
+            finalButtonRedirect1.onclick = () => { window.open('https://subhamkr07.github.io/questions-/', '_blank'); };
+            finalButtonRedirect2.onclick = () => { window.open('https://subhamkr07.github.io/gov.exams.sk/', '_blank'); };
+            finalPlayAgainButton.onclick = restartQuiz;
         }
+
 
         /**
          * Resets the quiz state and restarts from the beginning.
          */
         function restartQuiz() {
-            clearInterval(timerInterval);
+            clearInterval(timerInterval); 
             currentQuestionGlobalIndex = 0;
             currentLevel = 1;
             levelCorrectAnswers = 0;
@@ -1179,80 +1161,89 @@
             shuffleQuestions(); 
             hideAllScreens();
             quizIntro.classList.remove('hidden'); 
-            confettiContainer.innerHTML = ''; 
-            // Default image state for quiz start
-            questionImage.classList.add('image-hidden');
+            finalConfettiContainer.innerHTML = ''; 
+            // Reset image to hidden state for the start of the quiz
             questionImage.classList.remove('image-visible');
-            questionImage.src = ''; // Clear src to avoid showing last image briefly
+            questionImage.classList.add('image-hidden');
             updateLanguageUI(); 
         }
 
         /**
-         * Hides all main quiz screens and modals.
+         * Hides all main quiz screens.
          */
         function hideAllScreens() {
             quizIntro.classList.add('hidden');
             languageSelectionScreen.classList.add('hidden');
             quizQuestionsScreen.classList.add('hidden');
             quizResultsScreen.classList.add('hidden');
-            congratulationsModal.classList.add('hidden');
-            levelResultScreen.classList.add('hidden');
-            messageBox.classList.add('hidden');
+            finalCompletionModal.classList.add('hidden');
+            levelResultScreen.classList.add('hidden'); 
+
+            // Reset modal content animations
+            if (finalCompletionModalContent) {
+                finalCompletionModalContent.classList.add('opacity-0', 'scale-95');
+                finalCompletionModalContent.classList.remove('opacity-100', 'scale-100');
+            }
+            if (levelResultScreen.querySelector('.modal-animate-in')) {
+                 levelResultScreen.querySelector('.modal-animate-in').classList.add('opacity-0', 'scale-95');
+                 levelResultScreen.querySelector('.modal-animate-in').classList.remove('opacity-100', 'scale-100');
+            }
         }
-        
+
         /**
          * Shows the language selection screen.
          */
         function showLanguageSelectionScreen() {
             hideAllScreens();
             languageSelectionScreen.classList.remove('hidden');
-            updateLanguageUI();
+            updateLanguageUI(); 
         }
 
         /**
          * Starts the quiz in the selected language.
+         * @param {string} lang - The selected language ('hi' or 'en').
          */
         function startQuizInSelectedLanguage(lang) {
             currentLanguage = lang;
             updateLanguageUI(); 
             try {
-                console.log("Starting quiz in language:", currentLanguage);
+                console.log("startQuizInSelectedLanguage function called with language:", currentLanguage);
                 shuffleQuestions();
                 currentQuestionGlobalIndex = 0;
                 currentLevel = 1;
                 levelCorrectAnswers = 0;
                 totalCorrectAnswers = 0;
                 // Ensure image is hidden before first render
-                questionImage.classList.add('image-hidden');
                 questionImage.classList.remove('image-visible');
-                questionImage.src = ''; // Clear previous image
+                questionImage.classList.add('image-hidden');
                 renderQuiz();
                 console.log("Quiz started successfully in", currentLanguage);
             } catch (error) {
                 console.error("Error during startQuizInSelectedLanguage:", error);
-                showMessage(`Failed to start quiz: ${error.message}. Please try again.`);
+                showMessage(langText[currentLanguage].ok); // Generic error
             }
         }
 
         // Event Listeners
         window.onload = function() {
             console.log("Window loaded. Attaching event listeners.");
-            updateLanguageUI(); // Set initial language texts
+            updateLanguageUI(); 
 
             if (startQuizButton) {
                 startQuizButton.addEventListener('click', showLanguageSelectionScreen);
-            }
+            } else { console.error("Start Quiz button not found!"); }
+
             if (selectHindiButton) {
                 selectHindiButton.addEventListener('click', () => startQuizInSelectedLanguage('hi'));
-            }
+            } else { console.error("Select Hindi button not found!"); }
+
             if (selectEnglishButton) {
                 selectEnglishButton.addEventListener('click', () => startQuizInSelectedLanguage('en'));
-            }
-             // Fallback restart button listener (if that screen is ever shown)
-            const fallbackRestartButton = document.getElementById('restart-quiz-button');
-            if (fallbackRestartButton) {
-                 fallbackRestartButton.onclick = restartQuiz;
-            }
+            } else { console.error("Select English button not found!"); }
+            
+            // Initial setup for image state
+            questionImage.classList.add('image-hidden');
+            questionImage.classList.remove('image-visible');
         };
 
     </script>
