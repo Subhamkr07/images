@@ -127,17 +127,40 @@
         </div>
     </div>
 
-    <div id="congratulations-modal" class="fixed inset-0 bg-gradient-to-br from-purple-400 to-blue-600 bg-opacity-90 flex items-center justify-center z-50 hidden">
+    <div id="congratulations-modal" class="fixed inset-0 bg-gradient-to-br from-purple-400 via-pink-500 to-blue-600 bg-opacity-95 flex items-center justify-center z-50 hidden">
         <div class="absolute inset-0 overflow-hidden pointer-events-none" id="confetti-container"></div>
-        <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-lg w-full transform scale-95 transition-transform duration-300 ease-out">
-            <h2 class="text-4xl font-extrabold text-green-700 mb-4 animate-bounce">बधाई हो! 🎉</h2>
-            <p class="text-2xl font-semibold text-gray-800 mb-6">आपने सभी स्तरों को सफलतापूर्वक पूरा कर लिया है!</p>
-            <p class="text-3xl font-bold text-purple-700 mb-8">आप एक जीनियस हैं! 😜</p>
-            <button
+        <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-md sm:max-w-lg w-full modal-animate-in">
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 mb-3 animate-pulse">
+                🎉 <span id="congrats-title-text">Congratulations!</span> 🎉
+            </h2>
+            <p id="congrats-main-message" class="text-xl sm:text-2xl font-semibold text-gray-800 mb-4">
+                You have completed all levels. You are truly a genius!
+            </p>
+            <p id="congrats-secondary-message" class="text-md sm:text-lg text-gray-600 mb-6 sm:mb-8">
+                Try our other quiz games 👇
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
+                <button
+                    onclick="window.open('https://subhamkr07.github.io/questions-/', '_blank')"
+                    id="congrats-button-click-here"
+                    class="w-full sm:w-auto px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white text-lg sm:text-xl font-bold rounded-full shadow-lg transform hover:scale-105 transition duration-300 ease-in-out"
+                >
+                    Click Here
+                </button>
+                <button
+                    onclick="window.open('https://subhamkr07.github.io/gov.exams.sk/', '_blank')"
+                    id="congrats-button-play-now"
+                    class="w-full sm:w-auto px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-lg sm:text-xl font-bold rounded-full shadow-lg transform hover:scale-105 transition duration-300 ease-in-out"
+                >
+                    Play Now
+                </button>
+            </div>
+             <button
                 onclick="restartQuiz()"
-                class="px-8 py-4 bg-blue-600 text-white text-xl font-bold rounded-full hover:bg-blue-700 transition duration-300 transform hover:scale-105 shadow-lg"
+                id="congrats-button-restart"
+                class="w-full sm:w-auto px-6 py-3 bg-gray-700 text-white text-md sm:text-lg font-semibold rounded-lg hover:bg-gray-800 transition duration-300 shadow-md"
             >
-                पुनः प्रयास करें
+                Play Again?
             </button>
         </div>
     </div>
@@ -230,7 +253,7 @@
                     id="question-image"
                     src=""
                     alt="Question Image"
-                    class="w-full h-auto max-h-64 object-contain rounded-md mb-4 border border-gray-200 image-visible"
+                    class="w-full h-auto max-h-64 object-contain rounded-md mb-4 border border-gray-200 image-hidden" 
                     onerror="this.onerror=null;this.src='https://placehold.co/400x250/CCCCCC/666666?text=Image+Not+Available';"
                 />
                 <p id="question-text" class="text-xl sm:text-2xl font-semibold text-gray-800 text-center">
@@ -285,13 +308,16 @@
                 nextLevel: "अगला स्तर",
                 retryLevel: "स्तर दोबारा करें",
                 home: "मुख्य पृष्ठ",
-                congratulationsTitle: "बधाई हो! 🎉",
-                congratulationsMessage: "आपने सभी स्तरों को सफलतापूर्वक पूरा कर लिया है!",
-                geniusMessage: "आप एक जीनियस हैं! 😜",
-                tryAgain: "पुनः प्रयास करें",
                 quizEnded: "प्रश्नोत्तरी समाप्त!",
                 yourTotalScore: "आपका कुल स्कोर",
-                ok: "ठीक है"
+                ok: "ठीक है",
+                // New congratulations popup texts
+                congratulationsTitlePopup: "बधाई हो!", // Text for inside the span
+                congratulationsMainMessagePopup: "आपने सभी स्तरों को सफलतापूर्वक पूरा कर लिया है। आप सचमुच एक जीनियस हैं!",
+                tryOtherGamesPopup: "हमारे अन्य प्रश्नोत्तरी खेल आज़माएँ 👇",
+                clickHereButtonPopup: "यहां क्लिक करें",
+                playNowButtonPopup: "अभी खेलें",
+                playAgainButtonPopup: "फिर से खेलें?"
             },
             en: {
                 mainTitle: "Shubham Presents: Image-Based Quiz Game",
@@ -310,13 +336,16 @@
                 nextLevel: "Next Level",
                 retryLevel: "Retry Level",
                 home: "Home",
-                congratulationsTitle: "Congratulations! 🎉",
-                congratulationsMessage: "You have successfully completed all levels!",
-                geniusMessage: "You are a genius! 😜",
-                tryAgain: "Try Again",
                 quizEnded: "Quiz Ended!",
                 yourTotalScore: "Your Total Score",
-                ok: "OK"
+                ok: "OK",
+                // New congratulations popup texts
+                congratulationsTitlePopup: "Congratulations!", // Text for inside the span
+                congratulationsMainMessagePopup: "You have completed all levels. You are truly a genius!",
+                tryOtherGamesPopup: "Try our other quiz games 👇",
+                clickHereButtonPopup: "Click Here",
+                playNowButtonPopup: "Play Now",
+                playAgainButtonPopup: "Play Again?"
             }
         };
 
@@ -343,12 +372,14 @@
             document.getElementById('retry-level-button-result').textContent = langText[currentLanguage].retryLevel;
             document.getElementById('home-button-result').textContent = langText[currentLanguage].home;
 
-            // Update congratulations modal
-            document.querySelector('#congratulations-modal h2').textContent = langText[currentLanguage].congratulationsTitle;
-            document.querySelector('#congratulations-modal p:nth-of-type(1)').textContent = langText[currentLanguage].congratulationsMessage;
-            document.querySelector('#congratulations-modal p:nth-of-type(2)').textContent = langText[currentLanguage].geniusMessage;
-            document.querySelector('#congratulations-modal button').textContent = langText[currentLanguage].tryAgain;
-
+            // Update new congratulations modal texts
+            document.getElementById('congrats-title-text').textContent = langText[currentLanguage].congratulationsTitlePopup;
+            document.getElementById('congrats-main-message').textContent = langText[currentLanguage].congratulationsMainMessagePopup;
+            document.getElementById('congrats-secondary-message').textContent = langText[currentLanguage].tryOtherGamesPopup;
+            document.getElementById('congrats-button-click-here').textContent = langText[currentLanguage].clickHereButtonPopup;
+            document.getElementById('congrats-button-play-now').textContent = langText[currentLanguage].playNowButtonPopup;
+            document.getElementById('congrats-button-restart').textContent = langText[currentLanguage].playAgainButtonPopup;
+            
             // Update message box button
             document.querySelector('#message-box button').textContent = langText[currentLanguage].ok;
         }
@@ -551,6 +582,10 @@
             const padding = 50;
             const xAxisY = svgHeight - padding;
             const yAxisX = padding;
+            // Corrected to use centerX and centerY if they are defined globally, or calculate locally
+            const localCenterX = svgWidth / 2; 
+            const localCenterY = svgHeight / 2;
+
 
             const svg = `
                 <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color:#f8fafc; border-radius: 8px;">
@@ -561,7 +596,7 @@
                     <line x1="${yAxisX + 20}" y1="${xAxisY - 20}" x2="${svgWidth - padding - 20}" y2="${padding + 20}" stroke="#ef4444" stroke-width="4"/>
 
                     <text x="${svgWidth - padding / 2 + 10}" y="${xAxisY + 10}" font-family="Inter, sans-serif" font-size="16" fill="#334155">X</text>
-                    <text x="${centerX + 10}" y="20" font-family="Inter, sans-serif" font-size="16" fill="#334155" text-anchor="start">Y</text>
+                    <text x="${yAxisX + 10}" y="${padding / 2 - 5}" font-family="Inter, sans-serif" font-size="16" fill="#334155" text-anchor="start">Y</text>
                     <text x="${yAxisX - 10}" y="${xAxisY + 20}" font-family="Inter, sans-serif" font-size="16" fill="#334155">0</text>
                 </svg>
             `;
@@ -699,54 +734,55 @@
             "probability_dice_roll_generated": generateProbabilityDiceRollSVG,
             "set_theory_venn_diagram_generated": generateSetTheoryVennDiagramSVG,
             "slope_of_line_graph_generated": generateSlopeOfLineGraphSVG,
-            // Math (Still needs image)
-            "pie_chart_distribution": "images/pie_chart_distribution.png",
-            "geometric_sequence": "images/geometric_sequence.png",
-            "quadratic_equation_graph": "images/quadratic_equation_graph.png",
+            // Math (Using placeholders, replace with actual image paths or SVG functions if available)
+            "pie_chart_distribution": "https://placehold.co/400x250/FFD700/000000?text=Pie+Chart",
+            "geometric_sequence": "https://placehold.co/400x250/ADD8E6/000000?text=Geometric+Sequence",
+            "quadratic_equation_graph": "https://placehold.co/400x250/90EE90/000000?text=Quadratic+Graph",
             // Geography (Generated for geo1)
             "world_map_climate_zones_generated": generateWorldMapClimateZonesSVG,
-            // Geography (Still needs image)
-            "river_delta": "images/river_delta.png",
-            "tectonic_plates_map": "images/tectonic_plates_map.png",
-            "desert_oasis": "images/desert_oasis.png",
-            "mountain_formation": "images/mountain_formation.png",
-            // History
-            "great_pyramid_giza": "images/great_pyramid_giza.png",
-            "ashoka_pillar": "images/ashoka_pillar.png",
-            "indus_valley_artifacts": "images/indus_valley_artifacts.png",
-            "mughal_miniature_painting": "images/mughal_miniature_painting.png",
-            "harappan_drainage_system": "images/harappan_drainage_system.png",
-            // Computer/IT (Generated for it3)
-            "network_topology": "images/network_topology.png",
-            "flowchart_decision": "images/flowchart_decision.png",
+            // Geography (Using placeholders)
+            "river_delta": "https://placehold.co/400x250/D3D3D3/000000?text=River+Delta",
+            "tectonic_plates_map": "https://placehold.co/400x250/FFB6C1/000000?text=Tectonic+Plates",
+            "desert_oasis": "https://placehold.co/400x250/F0E68C/000000?text=Desert+Oasis",
+            "mountain_formation": "https://placehold.co/400x250/B0C4DE/000000?text=Mountain+Formation",
+            // History (Using placeholders)
+            "great_pyramid_giza": "https://placehold.co/400x250/F4A460/000000?text=Pyramid+of+Giza",
+            "ashoka_pillar": "https://placehold.co/400x250/8FBC8F/000000?text=Ashoka+Pillar",
+            "indus_valley_artifacts": "https://placehold.co/400x250/D8BFD8/000000?text=Indus+Valley+Artifacts",
+            "mughal_miniature_painting": "https://placehold.co/400x250/CD853F/000000?text=Mughal+Painting",
+            "harappan_drainage_system": "https://placehold.co/400x250/A9A9A9/000000?text=Harappan+Drainage",
+            // Computer/IT (Generated for it3, others are placeholders)
+            "network_topology": "https://placehold.co/400x250/87CEEB/000000?text=Network+Topology",
+            "flowchart_decision": "https://placehold.co/400x250/FFDAB9/000000?text=Flowchart+Decision",
             "simple_python_loop_generated": generateSimplePythonLoopSVG,
-            "cloud_computing_diagram": "images/cloud_computing_diagram.png",
-            "database_icon": "images/database_icon.png",
-            // General Knowledge
-            "statue_of_liberty": "images/statue_of_liberty.png",
-            "map_of_africa": "images/map_of_africa.png",
-            "national_bird_peacock": "images/national_bird_peacock.png",
-            "seven_wonders_colosseum": "images/seven_wonders_colosseum.png",
-            "solar_system_planets": "images/solar_system_planets.png",
-            // Language
-            "person_deep_thought": "images/person_deep_thought.png",
-            "children_playing_happily": "images/children_playing_happily.png",
-            "old_book_open": "images/old_book_open.png",
-            "person_speaking_microphone": "images/person_speaking_microphone.png",
-            "puzzle_pieces_fitting": "images/puzzle_pieces_fitting.png",
-            // Science - Advanced
-            "human_brain_lobes": "images/human_brain_lobes.png",
-            "water_cycle_diagram": "images/water_cycle_diagram.png",
-            "food_chain_web": "images/food_chain_web.png",
-            "solar_eclipse_diagram": "images/solar_eclipse_diagram.png",
-            "dna_replication_process": "images/dna_replication_process.png",
-            // GK - Advanced
-            "united_nations_building": "images/united_nations_building.png",
-            "amazon_river_forest": "images/amazon_river_forest.png",
-            "india_gate_delhi": "images/india_gate_delhi.png",
-            "iss_in_space": "images/iss_in_space.png",
-            "great_barrier_reef": "images/great_barrier_reef.png",
+            "cloud_computing_diagram": "https://placehold.co/400x250/E0BBE4/000000?text=Cloud+Computing",
+            "database_icon": "https://placehold.co/400x250/C0C0C0/000000?text=Database+Icon",
+            // General Knowledge (Using placeholders)
+            "statue_of_liberty": "https://placehold.co/400x250/B0E0E6/000000?text=Statue+of+Liberty",
+            "map_of_africa": "https://placehold.co/400x250/F5DEB3/000000?text=Map+of+Africa",
+            "national_bird_peacock": "https://placehold.co/400x250/48D1CC/000000?text=Peacock",
+            "seven_wonders_colosseum": "https://placehold.co/400x250/DAA520/000000?text=Colosseum",
+            "solar_system_planets": "https://placehold.co/400x250/8A2BE2/FFFFFF?text=Solar+System",
+            // Language (Using placeholders)
+            "person_deep_thought": "https://placehold.co/400x250/DDA0DD/000000?text=Deep+Thought",
+            "children_playing_happily": "https://placehold.co/400x250/98FB98/000000?text=Children+Playing",
+            "old_book_open": "https://placehold.co/400x250/F5DEB3/000000?text=Old+Book",
+            "person_speaking_microphone": "https://placehold.co/400x250/FFC0CB/000000?text=Speaking+at+Mic",
+            "puzzle_pieces_fitting": "https://placehold.co/400x250/ADD8E6/000000?text=Puzzle+Pieces",
+            // Science - Advanced (Using placeholders)
+            "human_brain_lobes": "https://placehold.co/400x250/DDA0DD/000000?text=Brain+Lobes",
+            "water_cycle_diagram": "https://placehold.co/400x250/87CEFA/000000?text=Water+Cycle",
+            "food_chain_web": "https://placehold.co/400x250/98FB98/000000?text=Food+Web",
+            "solar_eclipse_diagram": "https://placehold.co/400x250/6A5ACD/FFFFFF?text=Solar+Eclipse",
+            "dna_replication_process": "https://placehold.co/400x250/FF6347/FFFFFF?text=DNA+Replication",
+            // GK - Advanced (Using placeholders)
+            "united_nations_building": "https://placehold.co/400x250/B0C4DE/000000?text=UN+Building",
+            "amazon_river_forest": "https://placehold.co/400x250/228B22/FFFFFF?text=Amazon+Forest",
+            "india_gate_delhi": "https://placehold.co/400x250/CD5C5C/FFFFFF?text=India+Gate",
+            "iss_in_space": "https://placehold.co/400x250/4682B4/FFFFFF?text=ISS",
+            "great_barrier_reef": "https://placehold.co/400x250/00CED1/FFFFFF?text=Great+Barrier+Reef",
         };
+
 
         // Quiz state variables
         let shuffledQuestions = [];
@@ -763,11 +799,11 @@
         const quizIntro = document.getElementById('quiz-intro');
         const languageSelectionScreen = document.getElementById('language-selection-screen');
         const quizQuestionsScreen = document.getElementById('quiz-questions');
-        const quizResultsScreen = document.getElementById('quiz-results'); // Still exists for overall score if not all levels passed
+        const quizResultsScreen = document.getElementById('quiz-results');
         const startQuizButton = document.getElementById('start-quiz-button');
         const selectHindiButton = document.getElementById('select-hindi-button');
         const selectEnglishButton = document.getElementById('select-english-button');
-        const restartQuizButton = document.getElementById('restart-quiz-button'); // For final results screen
+        // const restartQuizButton = document.getElementById('restart-quiz-button'); // This ID is for the fallback results screen
         const currentLevelDisplay = document.getElementById('current-level-display');
         const currentQuestionNumberSpan = document.getElementById('current-question-number');
         const questionSubjectSpan = document.getElementById('question-subject');
@@ -782,7 +818,7 @@
         const congratulationsModal = document.getElementById('congratulations-modal');
         const confettiContainer = document.getElementById('confetti-container');
 
-        // New Level Result Screen elements
+        // Level Result Screen elements
         const levelResultScreen = document.getElementById('level-result-screen');
         const levelResultMessage = document.getElementById('level-result-message');
         const levelCorrectCount = document.getElementById('level-correct-count');
@@ -794,9 +830,10 @@
 
 
         // Ensure all essential elements are found
-        if (!quizIntro || !languageSelectionScreen || !quizQuestionsScreen || !startQuizButton || !timerProgressBar || !optionsContainer || !levelResultScreen || !selectHindiButton || !selectEnglishButton) {
+        if (!quizIntro || !languageSelectionScreen || !quizQuestionsScreen || !startQuizButton || !timerProgressBar || !optionsContainer || !levelResultScreen || !selectHindiButton || !selectEnglishButton || !congratulationsModal) {
             console.error("Error: One or more essential DOM elements not found. Check HTML IDs.");
-            document.body.innerHTML = '<div class="flex items-center justify-center min-h-screen bg-red-100 text-red-800 text-xl font-bold">क्षमा करें, प्रश्नोत्तरी लोड करने में एक महत्वपूर्ण त्रुटि हुई है। कृपया बाद में पुनः प्रयास करें।</div>';
+            // Display a user-friendly error message if critical elements are missing
+            document.body.innerHTML = '<div class="flex items-center justify-center min-h-screen bg-red-100 text-red-800 text-xl font-bold p-4 text-center">क्षमा करें, प्रश्नोत्तरी लोड करने में एक महत्वपूर्ण त्रुटि हुई है। कृपया पृष्ठ को रीफ़्रेश करें या बाद में पुनः प्रयास करें।<br><br>Sorry, a critical error occurred while loading the quiz. Please refresh the page or try again later.</div>';
         }
 
         /**
@@ -840,7 +877,9 @@
                 updateTimerDisplay();
                 if (timer <= 0) {
                     clearInterval(timerInterval);
-                    // Time's up, move to next question (consider as incorrect)
+                    // Time's up, hide image and move to next question (consider as incorrect)
+                    questionImage.classList.add('image-hidden');
+                    questionImage.classList.remove('image-visible');
                     console.log("Time's up for question:", shuffledQuestions[currentQuestionGlobalIndex].id);
                     handleAnswerSelect(null, null); // Pass null to indicate time ran out
                 }
@@ -853,6 +892,7 @@
         function updateTimerDisplay() {
             const percentage = (timer / 23) * 100;
             timerProgressBar.style.width = `${percentage}%`;
+            // Change color based on time remaining
             if (percentage < 30) {
                 timerProgressBar.style.backgroundColor = '#ef4444'; // red-500
             } else if (percentage < 60) {
@@ -883,22 +923,24 @@
                 currentQuestionNumberSpan.textContent = (currentQuestionGlobalIndex % QUESTIONS_PER_LEVEL) + 1;
                 questionSubjectSpan.textContent = currentQuestion.subject[currentLanguage];
 
-                // Image switching: Hide old image instantly
-                questionImage.classList.remove('image-visible');
+                // Image switching: Ensure old image is hidden, then load new one.
+                // The old image should have been hidden by handleAnswerSelect or startTimer (on timeout).
+                // This ensures the image element is ready for the new source.
                 questionImage.classList.add('image-hidden');
+                questionImage.classList.remove('image-visible');
                 
-                // Set new image source after a short delay to allow for fade-out
+                // Set new image source after a short delay to allow for fade-out/DOM update
                 setTimeout(() => {
                     if (typeof imageMap[currentQuestion.image] === 'function') {
                         questionImage.src = imageMap[currentQuestion.image](); // Call the function to get SVG data URL
                     } else {
-                        questionImage.src = imageMap[currentQuestion.image]; // Use the direct path
+                        questionImage.src = imageMap[currentQuestion.image] || `https://placehold.co/400x250/CCCCCC/666666?text=${encodeURIComponent(langText[currentLanguage].imageNotAvailable)}`;
                     }
+                    questionImage.alt = `Question Image for ${currentQuestion.subject[currentLanguage]} - ${ (currentQuestionGlobalIndex % QUESTIONS_PER_LEVEL) + 1}`;
                     questionImage.classList.remove('image-hidden'); // Make new image visible
-                    questionImage.classList.add('image-visible'); // Add visible class for transition
-                }, 100); // Small delay for visual effect
+                    questionImage.classList.add('image-visible');   // Add visible class for transition
+                }, 50); // Reduced delay for quicker appearance
                 
-                questionImage.alt = `Question Image for ${currentQuestion.id}`;
                 questionText.textContent = currentQuestion.question[currentLanguage];
 
                 optionsContainer.innerHTML = ''; // Clear previous options
@@ -907,57 +949,38 @@
                 let optionsToDisplay = [...currentQuestion.options[currentLanguage]];
                 const correctAnswer = currentQuestion.answer[currentLanguage];
 
-                // Remove the correct answer from the temporary array
-                const correctAnswerIndex = optionsToDisplay.indexOf(correctAnswer);
-                if (correctAnswerIndex > -1) {
-                    optionsToDisplay.splice(correctAnswerIndex, 1);
+                const correctAnswerIndexInOriginal = optionsToDisplay.indexOf(correctAnswer);
+                if (correctAnswerIndexInOriginal > -1) {
+                    optionsToDisplay.splice(correctAnswerIndexInOriginal, 1);
                 }
 
-                // Shuffle the remaining (incorrect) options
                 for (let i = optionsToDisplay.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [optionsToDisplay[i], optionsToDisplay[j]] = [optionsToDisplay[j], optionsToDisplay[i]];
                 }
-
-                // Ensure exactly 4 incorrect options if there were more than 5 total initially
-                optionsToDisplay = optionsToDisplay.slice(0, 4); // Take only 4 incorrect options
-
-                // Randomly insert the correct answer back into the first 5 slots
-                const randomInsertIndex = Math.floor(Math.random() * 5); // 0 to 4
+                optionsToDisplay = optionsToDisplay.slice(0, 4); 
+                const randomInsertIndex = Math.floor(Math.random() * 5); 
                 optionsToDisplay.splice(randomInsertIndex, 0, correctAnswer);
 
-                // Now, optionsToDisplay has 5 elements with the correct answer at a random position.
                 optionsToDisplay.forEach((option, index) => {
                     const button = document.createElement('button');
-                    button.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+                    button.textContent = `${String.fromCharCode(65 + index)}. ${option}`; // A. Option1, B. Option2 etc.
                     button.classList.add(
-                        'quiz-button',
-                        'p-4',
-                        'rounded-lg',
-                        'border-2',
-                        'bg-white',
-                        'text-gray-800',
-                        'border-gray-300',
-                        'hover:bg-blue-50',
-                        'hover:border-blue-400',
-                        'font-medium',
-                        'text-left',
-                        'transition',
-                        'duration-200',
-                        'ease-in-out',
-                        'transform',
-                        'hover:scale-102'
+                        'quiz-button', 'p-3', 'sm:p-4', 'rounded-lg', 'border-2', 'bg-white', 'text-gray-800',
+                        'border-gray-300', 'hover:bg-blue-50', 'hover:border-blue-400',
+                        'font-medium', 'text-left', 'transition', 'duration-200', 'ease-in-out',
+                        'transform', 'hover:scale-102', 'w-full' // Ensure buttons take full width in their grid cell
                     );
                     button.onclick = () => handleAnswerSelect(option, button);
                     optionsContainer.appendChild(button);
                 });
 
-                // Start the timer for the new question
                 startTimer();
             } catch (error) {
                 console.error("Error during renderQuiz:", error);
-                showMessage(langText[currentLanguage].messageBoxError);
-                restartQuiz();
+                showMessage(`Error rendering quiz: ${error.message}. Please try restarting.`);
+                // Optionally, redirect to intro or show a specific error screen
+                // restartQuiz(); 
             }
         }
 
@@ -969,6 +992,10 @@
         function handleAnswerSelect(option, clickedButton) {
             clearInterval(timerInterval); // Stop the timer immediately
 
+            // Immediately hide the current question's image
+            questionImage.classList.add('image-hidden');
+            questionImage.classList.remove('image-visible');
+
             // Disable all options to prevent multiple selections
             Array.from(optionsContainer.children).forEach(btn => {
                 btn.disabled = true;
@@ -976,31 +1003,33 @@
             });
 
             const currentQuestion = shuffledQuestions[currentQuestionGlobalIndex];
-            const correctAnswer = currentQuestion.answer[currentLanguage]; // Get correct answer for current language
+            const correctAnswer = currentQuestion.answer[currentLanguage];
 
             if (option !== null && option === correctAnswer) {
                 levelCorrectAnswers++;
                 totalCorrectAnswers++;
                 if (clickedButton) {
                     clickedButton.classList.add('bg-green-500', 'text-white', 'border-green-600');
-                    clickedButton.classList.remove('bg-blue-500', 'text-white', 'border-blue-600', 'bg-white', 'text-gray-800', 'border-gray-300');
+                    clickedButton.classList.remove('bg-white', 'text-gray-800', 'border-gray-300');
                 }
             } else {
-                // If time ran out or incorrect option was chosen
-                if (clickedButton) {
+                if (clickedButton) { // If an incorrect option was clicked
                     clickedButton.classList.add('bg-red-500', 'text-white', 'border-red-600');
-                    clickedButton.classList.remove('bg-blue-500', 'text-white', 'border-blue-600', 'bg-white', 'text-gray-800', 'border-gray-300');
+                    clickedButton.classList.remove('bg-white', 'text-gray-800', 'border-gray-300');
                 }
-                // Highlight correct answer
+                // Highlight correct answer regardless of choice (or if time ran out)
                 Array.from(optionsContainer.children).forEach(btn => {
-                    if (btn.textContent.includes(correctAnswer)) {
+                    // The textContent now includes "A. ", "B. " etc.
+                    const optionTextOnly = btn.textContent.substring(btn.textContent.indexOf('.') + 2);
+                    if (optionTextOnly === correctAnswer) {
                         btn.classList.add('bg-green-200', 'border-green-400', 'text-green-800');
+                        btn.classList.remove('bg-white', 'text-gray-800', 'border-gray-300');
                     }
                 });
             }
 
             // Move to the next question after a short delay to show result
-            setTimeout(moveToNextQuestion, 1000); // 1 second delay
+            setTimeout(moveToNextQuestion, 1200); // 1.2 second delay for user to see feedback
         }
 
         /**
@@ -1008,19 +1037,24 @@
          */
         function moveToNextQuestion() {
             currentQuestionGlobalIndex++;
-            hideMessage(); // Hide message if it was shown
+            hideMessage(); 
 
             const questionsAnsweredInCurrentLevel = currentQuestionGlobalIndex % QUESTIONS_PER_LEVEL;
 
-            if (questionsAnsweredInCurrentLevel === 0) { // End of a level
+            if (questionsAnsweredInCurrentLevel === 0 && currentQuestionGlobalIndex > 0) { // End of a level
                 checkLevelCompletion();
             } else if (currentQuestionGlobalIndex < shuffledQuestions.length) {
                 renderQuiz();
-            } else { // End of all questions, but not necessarily passed all levels
-                // This case should ideally be handled by checkLevelCompletion for the last level
-                // If somehow we reach here without triggering checkLevelCompletion for the last level,
-                // it means all questions are done, so show overall results.
-                showResults();
+            } else { 
+                // This case means all questions are done. If the last level was passed, congrats was shown.
+                // If last level was failed, level result screen was shown.
+                // If somehow we reach here (e.g., fewer than 50 questions and last level not triggering checkLevelCompletion correctly),
+                // show overall results as a fallback.
+                if (!congratulationsModal.classList.contains('hidden') || !levelResultScreen.classList.contains('hidden')) {
+                    // A modal is already showing, do nothing more.
+                } else {
+                    showResults(); // Fallback
+                }
             }
         }
 
@@ -1033,30 +1067,23 @@
             const percentage = (levelCorrectAnswers / questionsAnsweredInLevel) * 100;
 
             let levelPassed = false;
-            // Level 1 to 5: 3 correct answers to pass
             if (currentLevel >= 1 && currentLevel <= 5) {
                 levelPassed = levelCorrectAnswers >= 3;
-            }
-            // Level 6 to 10: 4 correct answers to pass
-            else if (currentLevel >= 6 && currentLevel <= TOTAL_LEVELS) {
+            } else if (currentLevel >= 6 && currentLevel <= TOTAL_LEVELS) {
                 levelPassed = levelCorrectAnswers >= 4;
             }
             console.log(`Level ${currentLevel} completed. Correct: ${levelCorrectAnswers}, Incorrect: ${incorrectCount}, Percentage: ${percentage.toFixed(2)}%. Passed: ${levelPassed}`);
 
             showLevelResultScreen(levelPassed, levelCorrectAnswers, incorrectCount, percentage);
         }
-
+        
         /**
-         * Displays the level result screen with appropriate message and buttons.
-         * @param {boolean} passed - True if the level was passed, false otherwise.
-         * @param {number} correctCount - Number of correct answers in the level.
-         * @param {number} incorrectCount - Number of incorrect answers in the level.
-         * @param {number} percentage - Percentage of correct answers in the level.
+         * Displays the level result screen.
          */
         function showLevelResultScreen(passed, correctCount, incorrectCount, percentage) {
             hideAllScreens();
             levelResultScreen.classList.remove('hidden');
-            levelResultScreen.classList.add('modal-animate-in'); // Add animation class
+            levelResultScreen.classList.add('modal-animate-in');
 
             levelCorrectCount.textContent = correctCount;
             levelIncorrectCount.textContent = incorrectCount;
@@ -1066,97 +1093,102 @@
                 levelResultMessage.textContent = langText[currentLanguage].levelPassed(currentLevel);
                 levelResultMessage.classList.remove('text-red-600');
                 levelResultMessage.classList.add('text-green-700');
-                nextLevelButton.classList.remove('hidden'); // Show Next Level button
-
-                // If it's the very last level, "Next Level" should lead to congratulations
-                if (currentLevel === TOTAL_LEVELS) { // Check if currentLevel is the last level (before incrementing for next)
-                    nextLevelButton.classList.add('hidden'); // Hide next level button if all levels are completed
-                    // Automatically show congratulations if all levels are passed
-                    setTimeout(showCongratulations, 1500); // Small delay before showing confetti
+                
+                if (currentLevel === TOTAL_LEVELS) {
+                    nextLevelButton.classList.add('hidden');
+                    setTimeout(showCongratulations, 1000); // Delay before showing final congrats
                 } else {
-                     nextLevelButton.classList.remove('hidden'); // Ensure it's visible for intermediate levels
+                    nextLevelButton.classList.remove('hidden');
                 }
             } else {
                 levelResultMessage.textContent = langText[currentLanguage].levelFailed(currentLevel);
                 levelResultMessage.classList.remove('text-green-700');
                 levelResultMessage.classList.add('text-red-600');
-                nextLevelButton.classList.add('hidden'); // Hide Next Level button if failed
+                nextLevelButton.classList.add('hidden');
             }
 
-            // Assign event listeners for the buttons on this screen
             nextLevelButton.onclick = () => {
-                currentLevel++; // Increment level for the next set of questions
-                levelCorrectAnswers = 0; // Reset for next level
-                renderQuiz(); // Move to the next level's first question
+                currentLevel++; 
+                levelCorrectAnswers = 0; 
+                renderQuiz(); 
             };
-            retryLevelButtonResult.onclick = () => {
-                retryCurrentLevel();
-            };
-            homeButtonResult.onclick = () => {
-                restartQuiz(); // Go back to intro screen
-            };
+            retryLevelButtonResult.onclick = retryCurrentLevel;
+            homeButtonResult.onclick = restartQuiz;
         }
 
         /**
          * Retries the current level.
          */
         function retryCurrentLevel() {
-            // Reset score for the current level
             levelCorrectAnswers = 0;
-            // Go back to the start of the current level's questions
             currentQuestionGlobalIndex = (currentLevel - 1) * QUESTIONS_PER_LEVEL;
             hideAllScreens();
             renderQuiz();
         }
 
         /**
-         * Displays the final quiz results screen (only if user quits or somehow finishes without congratulations).
+         * Displays the final quiz results screen (fallback).
          */
         function showResults() {
             hideAllScreens();
             quizResultsScreen.classList.remove('hidden');
             finalScoreSpan.textContent = totalCorrectAnswers;
-            totalQuestionsResultsSpan.textContent = quizQuestions.length; // Total possible questions
-            clearInterval(timerInterval); // Ensure timer is stopped
+            totalQuestionsResultsSpan.textContent = shuffledQuestions.length; 
+            clearInterval(timerInterval); 
+            // Ensure the restart button on this specific screen works
+            const fallbackRestartButton = document.getElementById('restart-quiz-button');
+            if (fallbackRestartButton) {
+                 fallbackRestartButton.onclick = restartQuiz;
+            }
         }
 
         /**
-         * Displays the congratulations modal with animation.
+         * Displays the updated congratulations modal.
          */
         function showCongratulations() {
             hideAllScreens();
+            updateLanguageUI(); // Ensure modal texts are correct for current language
             congratulationsModal.classList.remove('hidden');
-            // Start confetti animation
-            for (let i = 0; i < 50; i++) {
+            congratulationsModal.classList.add('modal-animate-in');
+            
+            confettiContainer.innerHTML = ''; // Clear previous confetti
+            for (let i = 0; i < 60; i++) { // More confetti!
                 const confetti = document.createElement('div');
                 confetti.classList.add('confetti');
                 confetti.style.left = `${Math.random() * 100}%`;
-                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 70%)`;
+                const randomColor = `hsl(${Math.random() * 360}, 100%, ${60 + Math.random() * 20}%)`; // Brighter confetti
+                confetti.style.backgroundColor = randomColor;
                 confetti.style.animationDelay = `${Math.random() * 5}s`;
+                confetti.style.width = `${8 + Math.random() * 5}px`; // Slightly varied sizes
+                confetti.style.height = confetti.style.width;
+                confetti.style.opacity = Math.random() * 0.5 + 0.5; // Varied opacity
                 confettiContainer.appendChild(confetti);
             }
-            clearInterval(timerInterval); // Ensure timer is stopped
+            clearInterval(timerInterval);
         }
 
         /**
          * Resets the quiz state and restarts from the beginning.
          */
         function restartQuiz() {
-            clearInterval(timerInterval); // Stop any running timer
+            clearInterval(timerInterval);
             currentQuestionGlobalIndex = 0;
             currentLevel = 1;
             levelCorrectAnswers = 0;
             totalCorrectAnswers = 0;
-            shuffleQuestions(); // Shuffle questions for a new game
+            shuffleQuestions(); 
             hideAllScreens();
-            quizIntro.classList.remove('hidden'); // Show intro screen
-            congratulationsModal.classList.add('hidden'); // Hide congratulations
-            confettiContainer.innerHTML = ''; // Clear confetti
-            updateLanguageUI(); // Reset UI text to default (or last chosen)
+            quizIntro.classList.remove('hidden'); 
+            confettiContainer.innerHTML = ''; 
+            // Default image state for quiz start
+            questionImage.classList.add('image-hidden');
+            questionImage.classList.remove('image-visible');
+            questionImage.src = ''; // Clear src to avoid showing last image briefly
+            updateLanguageUI(); 
         }
 
         /**
-         * Hides all main quiz screens.
+         * Hides all main quiz screens and modals.
          */
         function hideAllScreens() {
             quizIntro.classList.add('hidden');
@@ -1164,37 +1196,41 @@
             quizQuestionsScreen.classList.add('hidden');
             quizResultsScreen.classList.add('hidden');
             congratulationsModal.classList.add('hidden');
-            levelResultScreen.classList.add('hidden'); // Hide the new screen
+            levelResultScreen.classList.add('hidden');
+            messageBox.classList.add('hidden');
         }
-
+        
         /**
          * Shows the language selection screen.
          */
         function showLanguageSelectionScreen() {
             hideAllScreens();
             languageSelectionScreen.classList.remove('hidden');
-            updateLanguageUI(); // Ensure language prompt is updated
+            updateLanguageUI();
         }
 
         /**
          * Starts the quiz in the selected language.
-         * @param {string} lang - The selected language ('hi' or 'en').
          */
         function startQuizInSelectedLanguage(lang) {
             currentLanguage = lang;
-            updateLanguageUI(); // Update all UI elements to the selected language
+            updateLanguageUI(); 
             try {
-                console.log("startQuizInSelectedLanguage function called with language:", currentLanguage);
+                console.log("Starting quiz in language:", currentLanguage);
                 shuffleQuestions();
                 currentQuestionGlobalIndex = 0;
                 currentLevel = 1;
                 levelCorrectAnswers = 0;
                 totalCorrectAnswers = 0;
+                // Ensure image is hidden before first render
+                questionImage.classList.add('image-hidden');
+                questionImage.classList.remove('image-visible');
+                questionImage.src = ''; // Clear previous image
                 renderQuiz();
                 console.log("Quiz started successfully in", currentLanguage);
             } catch (error) {
                 console.error("Error during startQuizInSelectedLanguage:", error);
-                showMessage(langText[currentLanguage].messageBoxError);
+                showMessage(`Failed to start quiz: ${error.message}. Please try again.`);
             }
         }
 
@@ -1205,58 +1241,20 @@
 
             if (startQuizButton) {
                 startQuizButton.addEventListener('click', showLanguageSelectionScreen);
-                console.log("Start Quiz button listener attached.");
-            } else {
-                console.error("Start Quiz button not found!");
             }
-
             if (selectHindiButton) {
                 selectHindiButton.addEventListener('click', () => startQuizInSelectedLanguage('hi'));
-                console.log("Select Hindi button listener attached.");
-            } else {
-                console.error("Select Hindi button not found!");
             }
-
             if (selectEnglishButton) {
                 selectEnglishButton.addEventListener('click', () => startQuizInSelectedLanguage('en'));
-                console.log("Select English button listener attached.");
-            } else {
-                console.error("Select English button not found!");
+            }
+             // Fallback restart button listener (if that screen is ever shown)
+            const fallbackRestartButton = document.getElementById('restart-quiz-button');
+            if (fallbackRestartButton) {
+                 fallbackRestartButton.onclick = restartQuiz;
             }
         };
 
-        // Firebase related: No actual Firestore operations are performed in this app
-        // as data persistence was not explicitly requested.
-        // If Firebase authentication or storage were needed, you would initialize them here:
-        /*
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        // import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        // const db = getFirestore(app);
-
-        // Authenticate user
-        if (initialAuthToken) {
-            signInWithCustomToken(auth, initialAuthToken)
-                .then(() => console.log("Signed in with custom token"))
-                .catch(error => console.error("Error signing in with custom token:", error));
-        } else {
-            signInAnonymously(auth)
-                .then(() => console.log("Signed in anonymously"))
-                .catch(error => console.error("Error signing in anonymously:", error));
-        }
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                console.log("User UID:", user.uid);
-                // You can use user.uid for Firestore operations if needed
-            } else {
-                console.log("No user is signed in.");
-            }
-        });
-        */
     </script>
 </body>
 </html>
