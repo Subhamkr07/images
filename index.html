@@ -101,6 +101,16 @@
         .modal-animate-in {
             animation: scaleIn 0.3s ease-out forwards;
         }
+
+        /* Image transition for quick switch */
+        .image-hidden {
+            opacity: 0;
+            transition: opacity 0.1s ease-out; /* Quick fade out */
+        }
+        .image-visible {
+            opacity: 1;
+            transition: opacity 0.1s ease-in; /* Quick fade in */
+        }
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-blue-100 to-purple-200 flex items-center justify-center p-4">
@@ -163,31 +173,51 @@
 
     <div class="bg-white rounded-xl shadow-2xl p-6 sm:p-8 md:p-10 w-full max-w-2xl flex flex-col items-center">
         <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-6 text-center">
-            छवि-आधारित प्रश्नोत्तरी
+            <span id="main-title">Shubham Presents: Image-Based Quiz Game</span>
         </h1>
 
         <div id="quiz-intro" class="text-center">
-            <p class="text-lg text-gray-600 mb-8">
+            <p class="text-lg text-gray-600 mb-8" id="intro-text">
                 अपनी दृश्य समझ का परीक्षण करें! विभिन्न विषयों पर छवि-आधारित प्रश्नों का उत्तर दें।
             </p>
             <button
                 id="start-quiz-button"
                 class="px-8 py-4 text-white text-xl font-bold rounded-full start-button"
             >
-                प्रश्नोत्तरी शुरू करें
+                Start
             </button>
+        </div>
+
+        <div id="language-selection-screen" class="text-center hidden">
+            <p class="text-xl font-semibold text-gray-800 mb-8" id="language-prompt">
+                कृपया अपनी भाषा चुनें / Please select your language
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-6">
+                <button
+                    id="select-hindi-button"
+                    class="px-8 py-4 bg-blue-600 text-white text-xl font-bold rounded-full hover:bg-blue-700 transition duration-300 transform hover:scale-105 shadow-lg"
+                >
+                    हिंदी
+                </button>
+                <button
+                    id="select-english-button"
+                    class="px-8 py-4 bg-purple-600 text-white text-xl font-bold rounded-full hover:bg-purple-700 transition duration-300 transform hover:scale-105 shadow-lg"
+                >
+                    English
+                </button>
+            </div>
         </div>
 
         <div id="quiz-questions" class="w-full hidden">
             <div class="text-center mb-6">
                 <p class="text-lg text-gray-700 font-semibold mb-2">
-                    स्तर <span id="current-level-display">1</span> / 10
+                    <span id="level-text">स्तर</span> <span id="current-level-display">1</span> / 10
                 </p>
                 <p class="text-lg text-gray-700 font-semibold mb-2">
-                    प्रश्न <span id="current-question-number">1</span> / 5
+                    <span id="question-text-label">प्रश्न</span> <span id="current-question-number">1</span> / 5
                 </p>
                 <p class="text-md text-gray-500">
-                    विषय: <span id="question-subject"></span>
+                    <span id="subject-text-label">विषय</span>: <span id="question-subject"></span>
                 </p>
             </div>
 
@@ -200,8 +230,8 @@
                     id="question-image"
                     src=""
                     alt="Question Image"
-                    class="w-full h-auto max-h-64 object-contain rounded-md mb-4 border border-gray-200"
-                    onerror="this.onerror=null;this.src='https://placehold.co/400x250/CCCCCC/666666?text=छवि+उपलब्ध+नहीं';"
+                    class="w-full h-auto max-h-64 object-contain rounded-md mb-4 border border-gray-200 image-visible"
+                    onerror="this.onerror=null;this.src='https://placehold.co/400x250/CCCCCC/666666?text=Image+Not+Available';"
                 />
                 <p id="question-text" class="text-xl sm:text-2xl font-semibold text-gray-800 text-center">
                     प्रश्न यहाँ आएगा?
@@ -232,7 +262,97 @@
         // Firebase variables (required by Canvas, but not used for storage in this specific app)
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; // Fixed typo here
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let currentLanguage = 'hi'; // Default language
+
+        // Text content for different languages
+        const langText = {
+            hi: {
+                mainTitle: "शुभम प्रस्तुत करता है: छवि-आधारित प्रश्नोत्तरी खेल",
+                introText: "अपनी दृश्य समझ का परीक्षण करें! विभिन्न विषयों पर छवि-आधारित प्रश्नों का उत्तर दें।",
+                startButton: "शुरू करें",
+                languagePrompt: "कृपया अपनी भाषा चुनें",
+                levelLabel: "स्तर",
+                questionLabel: "प्रश्न",
+                subjectLabel: "विषय",
+                imageNotAvailable: "छवि उपलब्ध नहीं",
+                levelPassed: (level) => `शानदार! 🎉 आपने स्तर ${level} सफलतापूर्वक पूरा कर लिया है। आगे बढ़ो!`,
+                levelFailed: (level) => `ओह नहीं! 😔 आप स्तर ${level} पास नहीं कर सके। कोई बात नहीं, अगली बार और अच्छा प्रयास करें।`,
+                correctAnswers: "सही उत्तर",
+                incorrectAnswers: "गलत उत्तर",
+                percentage: "प्रतिशत",
+                nextLevel: "अगला स्तर",
+                retryLevel: "स्तर दोबारा करें",
+                home: "मुख्य पृष्ठ",
+                congratulationsTitle: "बधाई हो! 🎉",
+                congratulationsMessage: "आपने सभी स्तरों को सफलतापूर्वक पूरा कर लिया है!",
+                geniusMessage: "आप एक जीनियस हैं! 😜",
+                tryAgain: "पुनः प्रयास करें",
+                quizEnded: "प्रश्नोत्तरी समाप्त!",
+                yourTotalScore: "आपका कुल स्कोर",
+                ok: "ठीक है"
+            },
+            en: {
+                mainTitle: "Shubham Presents: Image-Based Quiz Game",
+                introText: "Test your visual comprehension! Answer image-based questions on various subjects.",
+                startButton: "Start",
+                languagePrompt: "Please select your language / कृपया अपनी भाषा चुनें",
+                levelLabel: "Level",
+                questionLabel: "Question",
+                subjectLabel: "Subject",
+                imageNotAvailable: "Image Not Available",
+                levelPassed: (level) => `Fantastic! 🎉 You have successfully completed Level ${level}. Keep going!`,
+                levelFailed: (level) => `Oh no! 😔 You failed Level ${level}. Don't worry, try harder next time.`,
+                correctAnswers: "Correct Answers",
+                incorrectAnswers: "Incorrect Answers",
+                percentage: "Percentage",
+                nextLevel: "Next Level",
+                retryLevel: "Retry Level",
+                home: "Home",
+                congratulationsTitle: "Congratulations! 🎉",
+                congratulationsMessage: "You have successfully completed all levels!",
+                geniusMessage: "You are a genius! 😜",
+                tryAgain: "Try Again",
+                quizEnded: "Quiz Ended!",
+                yourTotalScore: "Your Total Score",
+                ok: "OK"
+            }
+        };
+
+        /**
+         * Updates all static text elements based on the currentLanguage.
+         */
+        function updateLanguageUI() {
+            document.getElementById('main-title').textContent = langText[currentLanguage].mainTitle;
+            document.getElementById('intro-text').textContent = langText[currentLanguage].introText;
+            document.getElementById('start-quiz-button').textContent = langText[currentLanguage].startButton;
+            document.getElementById('language-prompt').textContent = langText[currentLanguage].languagePrompt;
+            document.getElementById('level-text').textContent = langText[currentLanguage].levelLabel;
+            document.getElementById('question-text-label').textContent = langText[currentLanguage].questionLabel;
+            document.getElementById('subject-text-label').textContent = langText[currentLanguage].subjectLabel;
+            document.getElementById('question-image').onerror = function() {
+                this.onerror=null;
+                this.src=`https://placehold.co/400x250/CCCCCC/666666?text=${encodeURIComponent(langText[currentLanguage].imageNotAvailable)}`;
+            };
+            // Update level result screen buttons and labels
+            document.getElementById('level-result-message').textContent = langText[currentLanguage].levelPassed(currentLevel); // Placeholder, will be updated by showLevelResultScreen
+            document.getElementById('level-correct-count').previousSibling.textContent = langText[currentLanguage].correctAnswers + ": ";
+            document.getElementById('level-incorrect-count').previousSibling.textContent = langText[currentLanguage].incorrectAnswers + ": ";
+            document.getElementById('level-percentage').previousSibling.textContent = langText[currentLanguage].percentage + ": ";
+            document.getElementById('next-level-button').textContent = langText[currentLanguage].nextLevel;
+            document.getElementById('retry-level-button-result').textContent = langText[currentLanguage].retryLevel;
+            document.getElementById('home-button-result').textContent = langText[currentLanguage].home;
+
+            // Update congratulations modal
+            document.querySelector('#congratulations-modal h2').textContent = langText[currentLanguage].congratulationsTitle;
+            document.querySelector('#congratulations-modal p:nth-of-type(1)').textContent = langText[currentLanguage].congratulationsMessage;
+            document.querySelector('#congratulations-modal p:nth-of-type(2)').textContent = langText[currentLanguage].geniusMessage;
+            document.querySelector('#congratulations-modal button').textContent = langText[currentLanguage].tryAgain;
+
+            // Update message box button
+            document.querySelector('#message-box button').textContent = langText[currentLanguage].ok;
+        }
 
         /**
          * Converts an SVG string to a base64 data URL.
@@ -245,6 +365,7 @@
         }
 
         // --- Dynamic Image Generation Functions ---
+        // (These functions remain the same as they generate generic SVGs, not language-specific text)
 
         function generatePythagoreanTheoremSVG() {
             const svgWidth = 400;
@@ -267,8 +388,8 @@
                     <line x1="${x1 + 10}" y1="${y1}" x2="${x1 + 10}" y2="${y1 - 10}" stroke="#3b82f6" stroke-width="2"/>
                     <line x1="${x1}" y1="${y1 - 10}" x2="${x1 + 10}" y2="${y1 - 10}" stroke="#3b82f6" stroke-width="2"/>
 
-                    <text x="${(x1 + x2) / 2}" y="${y1 + 20}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">3 इकाई</text>
-                    <text x="${x1 - 30}" y="${(y1 + y3) / 2}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(-90 ${x1 - 30},${(y1 + y3) / 2})">4 इकाई</text>
+                    <text x="${(x1 + x2) / 2}" y="${y1 + 20}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">3 units</text>
+                    <text x="${x1 - 30}" y="${(y1 + y3) / 2}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(-90 ${x1 - 30},${(y1 + y3) / 2})">4 units</text>
                     <text x="${(x2 + x3) / 2 + 10}" y="${(y2 + y3) / 2 - 10}" font-family="Inter, sans-serif" font-size="20" fill="#dc2626" text-anchor="middle">X</text>
                 </svg>
             `;
@@ -335,8 +456,8 @@
                     <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#f8fafc" rx="8" ry="8"/>
                     <rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" fill="#dbeafe" stroke="#3b82f6" stroke-width="3"/>
                     
-                    <text x="${rectX + rectWidth / 2}" y="${rectY - 15}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">8 सेमी</text>
-                    <text x="${rectX - 25}" y="${rectY + rectHeight / 2}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(-90 ${rectX - 25},${rectY + rectHeight / 2})">5 सेमी</text>
+                    <text x="${rectX + rectWidth / 2}" y="${rectY - 15}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">8 cm</text>
+                    <text x="${rectX - 25}" y="${rectY + rectHeight / 2}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(-90 ${rectX - 25},${rectY + rectHeight / 2})">5 cm</text>
                 </svg>
             `;
             return createSvgDataUrl(svg);
@@ -359,9 +480,9 @@
                     <ellipse cx="${centerX}" cy="${centerY + height / 2}" rx="${radius}" ry="${radius / 3}" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
                     <ellipse cx="${centerX}" cy="${centerY + height / 2}" rx="${radius}" ry="${radius / 3}" fill="none" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 2"/>
 
-                    <text x="${centerX + radius + 30}" y="${centerY}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(90 ${centerX + radius + 30},${centerY})">10 सेमी</text>
+                    <text x="${centerX + radius + 30}" y="${centerY}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(90 ${centerX + radius + 30},${centerY})">10 cm</text>
                     <line x1="${centerX - radius}" y1="${centerY + height / 2 + 10}" x2="${centerX + radius}" y2="${centerY + height / 2 + 10}" stroke="#1e40af" stroke-width="1"/>
-                    <text x="${centerX}" y="${centerY + height / 2 + 30}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">3 सेमी</text>
+                    <text x="${centerX}" y="${centerY + height / 2 + 30}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">3 cm</text>
                 </svg>
             `;
             return createSvgDataUrl(svg);
@@ -441,7 +562,7 @@
                     <line x1="${yAxisX + 20}" y1="${xAxisY - 20}" x2="${svgWidth - padding - 20}" y2="${padding + 20}" stroke="#ef4444" stroke-width="4"/>
 
                     <text x="${svgWidth - padding / 2 + 10}" y="${xAxisY + 10}" font-family="Inter, sans-serif" font-size="16" fill="#334155">X</text>
-                    <text x="${yAxisX - 10}" y="${padding / 2 - 10}" font-family="Inter, sans-serif" font-size="16" fill="#334155">Y</text>
+                    <text x="${centerX + 10}" y="20" font-family="Inter, sans-serif" font-size="16" fill="#334155" text-anchor="start">Y</text>
                     <text x="${yAxisX - 10}" y="${xAxisY + 20}" font-family="Inter, sans-serif" font-size="16" fill="#334155">0</text>
                 </svg>
             `;
@@ -492,74 +613,74 @@
         // Quiz data (50 questions, 5 options each)
         const quizQuestions = [
             // Level 1 (Science)
-            { subject: "विज्ञान", id: "science1", image: "human_circulatory_system", question: "यह चित्र मानव शरीर के किस तंत्र को दर्शाता है, और इसका मुख्य कार्य क्या है?", options: ["पाचन तंत्र - भोजन को पचाना", "श्वसन तंत्र - गैसों का आदान-प्रदान", "परिसंचरण तंत्र - रक्त का संचार", "उत्सर्जन तंत्र - अपशिष्ट निकालना", "तंत्रिका तंत्र - संदेश भेजना"], answer: "परिसंचरण तंत्र - रक्त का संचार" },
-            { subject: "विज्ञान", id: "science2", image: "photosynthesis_diagram", question: "यह चित्र किस जैविक प्रक्रिया को दर्शाता है, और इस प्रक्रिया का अंतिम उत्पाद क्या है?", options: ["श्वसन - कार्बन डाइऑक्साइड", "प्रकाश संश्लेषण - ग्लूकोज और ऑक्सीजन", "किण्वन - अल्कोहल", "वाष्पोत्सर्जन - जल वाष्प", "प्रजनन - नए जीव"], answer: "प्रकाश संश्लेषण - ग्लूकोज और ऑक्सीजन" },
-            { subject: "विज्ञान", id: "science3", image: "newtons_cradle", question: "यह उपकरण किस वैज्ञानिक सिद्धांत को प्रदर्शित करता है?", options: ["ऊर्जा संरक्षण का नियम", "गति संरक्षण का नियम", "न्यूटन का तीसरा नियम", "उत्प्लावन का सिद्धांत", "आकर्षण का नियम"], answer: "गति संरक्षण का नियम" },
-            { subject: "विज्ञान", id: "science4", image: "chemical_reaction_beaker", question: "इस चित्र में एक रासायनिक अभिक्रिया हो रही है। यदि इसमें गैस निकल रही है, तो यह किस प्रकार की अभिक्रिया का संकेत हो सकता है?", options: ["अवक्षेपण अभिक्रिया", "उदासीनीकरण अभिक्रिया", "गैसीय उत्पाद वाली अभिक्रिया", "विस्थापन अभिक्रिया", "संयोजन अभिक्रिया"], answer: "गैसीय उत्पाद वाली अभिक्रिया" },
-            { subject: "विज्ञान", id: "science5", image: "telescope_observing", question: "यह वैज्ञानिक उपकरण किस उद्देश्य के लिए उपयोग किया जाता है?", options: ["सूक्ष्म वस्तुओं को देखने के लिए", "दूर की खगोलीय वस्तुओं को देखने के लिए", "ध्वनि को मापने के लिए", "तापमान को मापने के लिए", "दूरी मापने के लिए"], answer: "दूर की खगोलीय वस्तुओं को देखने के लिए" },
+            { subject: { hi: "विज्ञान", en: "Science" }, id: "science1", image: "human_circulatory_system", question: { hi: "यह चित्र मानव शरीर के किस तंत्र को दर्शाता है, और इसका मुख्य कार्य क्या है?", en: "What human body system does this image depict, and what is its primary function?" }, options: { hi: ["पाचन तंत्र - भोजन को पचाना", "श्वसन तंत्र - गैसों का आदान-प्रदान", "परिसंचरण तंत्र - रक्त का संचार", "उत्सर्जन तंत्र - अपशिष्ट निकालना", "तंत्रिका तंत्र - संदेश भेजना"], en: ["Digestive System - Digestion", "Respiratory System - Gas exchange", "Circulatory System - Blood circulation", "Excretory System - Waste removal", "Nervous System - Sending messages"] }, answer: { hi: "परिसंचरण तंत्र - रक्त का संचार", en: "Circulatory System - Blood circulation" } },
+            { subject: { hi: "विज्ञान", en: "Science" }, id: "science2", image: "photosynthesis_diagram", question: { hi: "यह चित्र किस जैविक प्रक्रिया को दर्शाता है, और इस प्रक्रिया का अंतिम उत्पाद क्या है?", en: "What biological process does this image illustrate, and what is its end product?" }, options: { hi: ["श्वसन - कार्बन डाइऑक्साइड", "प्रकाश संश्लेषण - ग्लूकोज और ऑक्सीजन", "किण्वन - अल्कोहल", "वाष्पोत्सर्जन - जल वाष्प", "प्रजनन - नए जीव"], en: ["Respiration - Carbon Dioxide", "Photosynthesis - Glucose and Oxygen", "Fermentation - Alcohol", "Transpiration - Water Vapor", "Reproduction - New Organisms"] }, answer: { hi: "प्रकाश संश्लेषण - ग्लूकोज और ऑक्सीजन", en: "Photosynthesis - Glucose and Oxygen" } },
+            { subject: { hi: "विज्ञान", en: "Science" }, id: "science3", image: "newtons_cradle", question: { hi: "यह उपकरण किस वैज्ञानिक सिद्धांत को प्रदर्शित करता है?", en: "What scientific principle does this apparatus demonstrate?" }, options: { hi: ["ऊर्जा संरक्षण का नियम", "गति संरक्षण का नियम", "न्यूटन का तीसरा नियम", "उत्प्लावन का सिद्धांत", "आकर्षण का नियम"], en: ["Law of Conservation of Energy", "Law of Conservation of Momentum", "Newton's Third Law", "Principle of Buoyancy", "Law of Attraction"] }, answer: { hi: "गति संरक्षण का नियम", en: "Law of Conservation of Momentum" } },
+            { subject: { hi: "विज्ञान", en: "Science" }, id: "science4", image: "chemical_reaction_beaker", question: { hi: "इस चित्र में एक रासायनिक अभिक्रिया हो रही है। यदि इसमें गैस निकल रही है, तो यह किस प्रकार की अभिक्रिया का संकेत हो सकता है?", en: "A chemical reaction is occurring in this image. If gas is being released, what type of reaction might this indicate?" }, options: { hi: ["अवक्षेपण अभिक्रिया", "उदासीनीकरण अभिक्रिया", "गैसीय उत्पाद वाली अभिक्रिया", "विस्थापन अभिक्रिया", "संयोजन अभिक्रिया"], en: ["Precipitation Reaction", "Neutralization Reaction", "Reaction with Gaseous Product", "Displacement Reaction", "Combination Reaction"] }, answer: { hi: "गैसीय उत्पाद वाली अभिक्रिया", en: "Reaction with Gaseous Product" } },
+            { subject: { hi: "विज्ञान", en: "Science" }, id: "science5", image: "telescope_observing", question: { hi: "यह वैज्ञानिक उपकरण किस उद्देश्य के लिए उपयोग किया जाता है?", en: "For what purpose is this scientific instrument used?" }, options: { hi: ["सूक्ष्म वस्तुओं को देखने के लिए", "दूर की खगोलीय वस्तुओं को देखने के लिए", "ध्वनि को मापने के लिए", "तापमान को मापने के लिए", "दूरी मापने के लिए"], en: ["To view microscopic objects", "To view distant celestial objects", "To measure sound", "To measure temperature", "To measure distance"] }, answer: { hi: "दूर की खगोलीय वस्तुओं को देखने के लिए", en: "To view distant celestial objects" } },
 
             // Level 2 (Maths) - Dynamic images
-            { subject: "गणित", id: "math1", image: "pythagorean_theorem_generated", question: "इस समकोण त्रिभुज में, यदि आधार 3 इकाई और लंब 4 इकाई है, तो कर्ण की लंबाई क्या होगी?", options: ["5 इकाई", "6 इकाई", "7 इकाई", "8 इकाई", "9 इकाई"], answer: "5 इकाई" },
-            { subject: "गणित", id: "math2", image: "pie_chart_distribution", question: "यह पाई चार्ट एक कक्षा में छात्रों के पसंदीदा रंगों का वितरण दर्शाता है। यदि कुल 40 छात्र हैं, और नीला रंग 25% है, तो कितने छात्रों को नीला रंग पसंद है?", options: ["8", "10", "12", "15", "20"], answer: "10" },
-            { subject: "गणित", id: "math3", image: "geometric_sequence", question: "इस ज्यामितीय पैटर्न को देखें। यदि पैटर्न त्रिकोणीय संख्याओं (1, 3, 6, 10, ...) का अनुसरण करता है, तो अगली आकृति में कितने वृत्त होंगे?", options: ["10", "12", "15", "16", "18"], answer: "15" },
-            { subject: "गणित", id: "math4", image: "coordinate_plane_point_generated", question: "इस निर्देशांक तल पर बिंदु A के निर्देशांक क्या हैं?", options: ["(2, 3)", "(3, 2)", "(-2, 3)", "(3, -2)", "(2, -3)"], answer: "(2, 3)" }, // Assuming point A is at (2,3)
-            { subject: "गणित", id: "math5", image: "area_of_rectangle_generated", question: "इस आयत की लंबाई 8 सेमी और चौड़ाई 5 सेमी है। इसका क्षेत्रफल क्या होगा?", options: ["13 वर्ग सेमी", "26 वर्ग सेमी", "40 वर्ग सेमी", "80 वर्ग सेमी", "30 वर्ग सेमी"], answer: "40 वर्ग सेमी" },
+            { subject: { hi: "गणित", en: "Math" }, id: "math1", image: "pythagorean_theorem_generated", question: { hi: "इस समकोण त्रिभुज में, यदि आधार 3 इकाई और लंब 4 इकाई है, तो कर्ण की लंबाई क्या होगी?", en: "In this right-angled triangle, if the base is 3 units and the perpendicular is 4 units, what will be the length of the hypotenuse?" }, options: { hi: ["5 इकाई", "6 इकाई", "7 इकाई", "8 इकाई", "9 इकाई"], en: ["5 units", "6 units", "7 units", "8 units", "9 units"] }, answer: { hi: "5 इकाई", en: "5 units" } },
+            { subject: { hi: "गणित", en: "Math" }, id: "math2", image: "pie_chart_distribution", question: { hi: "यह पाई चार्ट एक कक्षा में छात्रों के पसंदीदा रंगों का वितरण दर्शाता है। यदि कुल 40 छात्र हैं, और नीला रंग 25% है, तो कितने छात्रों को नीला रंग पसंद है?", en: "This pie chart shows the distribution of students' favorite colors in a class. If there are a total of 40 students, and blue is 25%, how many students like blue?" }, options: { hi: ["8", "10", "12", "15", "20"], en: ["8", "10", "12", "15", "20"] }, answer: { hi: "10", en: "10" } },
+            { subject: { hi: "गणित", en: "Math" }, id: "math3", image: "geometric_sequence", question: { hi: "इस ज्यामितीय पैटर्न को देखें। यदि पैटर्न त्रिकोणीय संख्याओं (1, 3, 6, 10, ...) का अनुसरण करता है, तो अगली आकृति में कितने वृत्त होंगे?", en: "Look at this geometric pattern. If the pattern follows triangular numbers (1, 3, 6, 10, ...), how many circles will be in the next figure?" }, options: { hi: ["10", "12", "15", "16", "18"], en: ["10", "12", "15", "16", "18"] }, answer: { hi: "15", en: "15" } },
+            { subject: { hi: "गणित", en: "Math" }, id: "math4", image: "coordinate_plane_point_generated", question: { hi: "इस निर्देशांक तल पर बिंदु A के निर्देशांक क्या हैं?", en: "What are the coordinates of point A on this coordinate plane?" }, options: { hi: ["(2, 3)", "(3, 2)", "(-2, 3)", "(3, -2)", "(2, -3)"], en: ["(2, 3)", "(3, 2)", "(-2, 3)", "(3, -2)", "(2, -3)"] }, answer: { hi: "(2, 3)", en: "(2, 3)" } }, // Assuming point A is at (2,3)
+            { subject: { hi: "गणित", en: "Math" }, id: "math5", image: "area_of_rectangle_generated", question: { hi: "इस आयत की लंबाई 8 सेमी और चौड़ाई 5 सेमी है। इसका क्षेत्रफल क्या होगा?", en: "The length of this rectangle is 8 cm and the width is 5 cm. What is its area?" }, options: { hi: ["13 वर्ग सेमी", "26 वर्ग सेमी", "40 वर्ग सेमी", "80 वर्ग सेमी", "30 वर्ग सेमी"], en: ["13 sq cm", "26 sq cm", "40 sq cm", "80 sq cm", "30 sq cm"] }, answer: { hi: "40 वर्ग सेमी", en: "40 sq cm" } },
 
             // Level 3 (Geography) - Dynamic image for geo1
-            { subject: "भूगोल", id: "geo1", image: "world_map_climate_zones_generated", question: "इस विश्व मानचित्र पर दिखाए गए 'A' क्षेत्र में आमतौर पर किस प्रकार की जलवायु पाई जाती है?", options: ["ध्रुवीय", "भूमध्यसागरीय", "उष्णकटिबंधीय", "शुष्क", "समशीतोष्ण"], answer: "उष्णकटिबंधीय" }, // 'A' points to equatorial region
-            { subject: "भूगोल", id: "geo2", image: "river_delta", question: "यह चित्र एक नदी के मुहाने पर बनने वाली किस भौगोलिक आकृति को दर्शाता है, जो तलछट के जमाव से बनती है?", options: ["झील", "घाटी", "डेल्टा", "प्रपात", "मुहाना"], answer: "डेल्टा" },
-            { subject: "भूगोल", id: "geo3", image: "tectonic_plates_map", question: "यह मानचित्र पृथ्वी की किन संरचनाओं को दर्शाता है, जो भूकंप और ज्वालामुखी गतिविधियों का कारण बनती हैं?", options: ["महासागर धाराएँ", "पवन पेटियाँ", "टेक्टोनिक प्लेटें", "जलवायु क्षेत्र", "पर्वत श्रृंखलाएँ"], answer: "टेक्टोनिक प्लेटें" },
-            { subject: "भूगोल", id: "geo4", image: "desert_oasis", question: "इस शुष्क परिदृश्य में पानी का यह स्रोत क्या कहलाता है, जो रेगिस्तान में जीवन का समर्थन करता है?", options: ["झील", "नदी", "मरुद्यान (ओएसिस)", "कुआँ", "तालाब"], answer: "मरुद्यान (ओएसिस)" },
-            { subject: "भूगोल", id: "geo5", image: "mountain_formation", question: "यह चित्र पर्वतों के निर्माण की किस प्रक्रिया को दर्शाता है, जहाँ चट्टान की परतें संपीड़न के कारण मुड़ जाती हैं?", options: ["अपरदन", "निक्षेपण", "वलन (फोल्डिंग)", "ज्वालामुखी", "भ्रंशन"], answer: "वलन (फोल्डिंग)" },
+            { subject: { hi: "भूगोल", en: "Geography" }, id: "geo1", image: "world_map_climate_zones_generated", question: { hi: "इस विश्व मानचित्र पर दिखाए गए 'A' क्षेत्र में आमतौर पर किस प्रकार की जलवायु पाई जाती है?", en: "What type of climate is typically found in the 'A' region shown on this world map?" }, options: { hi: ["ध्रुवीय", "भूमध्यसागरीय", "उष्णकटिबंधीय", "शुष्क", "समशीतोष्ण"], en: ["Polar", "Mediterranean", "Tropical", "Arid", "Temperate"] }, answer: { hi: "उष्णकटिबंधीय", en: "Tropical" } }, // 'A' points to equatorial region
+            { subject: { hi: "भूगोल", en: "Geography" }, id: "geo2", image: "river_delta", question: { hi: "यह चित्र एक नदी के मुहाने पर बनने वाली किस भौगोलिक आकृति को दर्शाता है, जो तलछट के जमाव से बनती है?", en: "What geographical feature formed by sediment deposition at the mouth of a river does this image show?" }, options: { hi: ["झील", "घाटी", "डेल्टा", "प्रपात", "मुहाना"], en: ["Lake", "Valley", "Delta", "Waterfall", "Estuary"] }, answer: { hi: "डेल्टा", en: "Delta" } },
+            { subject: { hi: "भूगोल", en: "Geography" }, id: "geo3", image: "tectonic_plates_map", question: { hi: "यह मानचित्र पृथ्वी की किन संरचनाओं को दर्शाता है, जो भूकंप और ज्वालामुखी गतिविधियों का कारण बनती हैं?", en: "What Earth structures, responsible for earthquakes and volcanic activity, does this map show?" }, options: { hi: ["महासागर धाराएँ", "पवन पेटियाँ", "टेक्टोनिक प्लेटें", "जलवायु क्षेत्र", "पर्वत श्रृंखलाएँ"], en: ["Ocean Currents", "Wind Belts", "Tectonic Plates", "Climate Zones", "Mountain Ranges"] }, answer: { hi: "टेक्टोनिक प्लेटें", en: "Tectonic Plates" } },
+            { subject: { hi: "भूगोल", en: "Geography" }, id: "geo4", image: "desert_oasis", question: { hi: "इस शुष्क परिदृश्य में पानी का यह स्रोत क्या कहलाता है, जो रेगिस्तान में जीवन का समर्थन करता है?", en: "What is this source of water in an arid landscape called, which supports life in the desert?" }, options: { hi: ["झील", "नदी", "मरुद्यान (ओएसिस)", "कुआँ", "तालाब"], en: ["Lake", "River", "Oasis", "Well", "Pond"] }, answer: { hi: "मरुद्यान (ओएसिस)", en: "Oasis" } },
+            { subject: { hi: "भूगोल", en: "Geography" }, id: "geo5", image: "mountain_formation", question: { hi: "यह चित्र पर्वतों के निर्माण की किस प्रक्रिया को दर्शाता है, जहाँ चट्टान की परतें संपीड़न के कारण मुड़ जाती हैं?", en: "What process of mountain formation, where rock layers fold due to compression, does this image depict?" }, options: { hi: ["अपरदन", "निक्षेपण", "वलन (फोल्डिंग)", "ज्वालामुखी", "भ्रंशन"], en: ["Erosion", "Deposition", "Folding", "Volcanism", "Faulting"] }, answer: { hi: "वलन (फोल्डिंग)", en: "Folding" } },
 
             // Level 4 (History)
-            { subject: "इतिहास", id: "hist1", image: "great_pyramid_giza", question: "यह प्राचीन संरचना किस सभ्यता से संबंधित है और इसका मुख्य उद्देश्य क्या था?", options: ["रोमन - सार्वजनिक स्नानघर", "मिस्र - फिरौन के मकबरे", "ग्रीक - मंदिर", "मेसोपोटामिया - ज़िगगुरात", "माया - वेधशाला"], answer: "मिस्र - फिरौन के मकबरे" },
-            { subject: "इतिहास", id: "hist2", image: "ashoka_pillar", question: "यह स्तंभ किस भारतीय सम्राट से जुड़ा है, और यह किस धर्म के प्रचार का प्रतीक है?", options: ["चंद्रगुप्त मौर्य - जैन धर्म", "अशोक - बौद्ध धर्म", "समुद्रगुप्त - हिंदू धर्म", "हर्षवर्धन - सिख धर्म", "कनिष्क - ईसाई धर्म"], answer: "अशोक - बौद्ध धर्म" },
-            { subject: "इतिहास", id: "hist3", image: "indus_valley_artifacts", question: "ये कलाकृतियाँ किस प्राचीन भारतीय सभ्यता से संबंधित हैं, जो अपनी शहरी योजना और जल निकासी प्रणाली के लिए प्रसिद्ध थी?", options: ["वैदिक सभ्यता", "सिंधु घाटी सभ्यता", "महाजनपद काल", "मौर्य साम्राज्य", "गुप्त साम्राज्य"], answer: "सिंधु घाटी सभ्यता" },
-            { subject: "इतिहास", id: "hist4", "image": "mughal_miniature_painting", question: "यह चित्रकला शैली किस भारतीय साम्राज्य के दौरान फली-फूली, और इसकी क्या विशेषता है?", options: ["गुप्त साम्राज्य - धार्मिक भित्ति चित्र", "चोल साम्राज्य - कांस्य मूर्तियां", "मुगल साम्राज्य - दरबारी जीवन और प्रकृति के सूक्ष्म चित्र", "विजयनगर साम्राज्य - मंदिर वास्तुकला", "पाल साम्राज्य - पांडुलिपि चित्रण"], answer: "मुगल साम्राज्य - दरबारी जीवन और प्रकृति के सूक्ष्म चित्र" },
-            { subject: "इतिहास", id: "hist5", image: "harappan_drainage_system", question: "यह चित्र सिंधु घाटी सभ्यता की किस अनूठी विशेषता को दर्शाता है, जो उनके उन्नत शहरी नियोजन को उजागर करती है?", options: ["किलेबंदी", "जल संचयन प्रणाली", "नियोजित जल निकासी प्रणाली", "अनाज भंडारण", "सार्वजनिक स्नानागार"], answer: "नियोजित जल निकासी प्रणाली" },
+            { subject: { hi: "इतिहास", en: "History" }, id: "hist1", image: "great_pyramid_giza", question: { hi: "यह प्राचीन संरचना किस सभ्यता से संबंधित है और इसका मुख्य उद्देश्य क्या था?", en: "To which ancient civilization does this structure belong, and what was its primary purpose?" }, options: { hi: ["रोमन - सार्वजनिक स्नानघर", "मिस्र - फिरौन के मकबरे", "ग्रीक - मंदिर", "मेसोपोटामिया - ज़िगगुरात", "माया - वेधशाला"], en: ["Roman - Public baths", "Egyptian - Tombs for Pharaohs", "Greek - Temples", "Mesopotamian - Ziggurats", "Mayan - Observatories"] }, answer: { hi: "मिस्र - फिरौन के मकबरे", en: "Egyptian - Tombs for Pharaohs" } },
+            { subject: { hi: "इतिहास", en: "History" }, id: "hist2", image: "ashoka_pillar", question: { hi: "यह स्तंभ किस भारतीय सम्राट से जुड़ा है, और यह किस धर्म के प्रचार का प्रतीक है?", en: "Which Indian emperor is associated with this pillar, and what religion does it symbolize the propagation of?" }, options: { hi: ["चंद्रगुप्त मौर्य - जैन धर्म", "अशोक - बौद्ध धर्म", "समुद्रगुप्त - हिंदू धर्म", "हर्षवर्धन - सिख धर्म", "कनिष्क - ईसाई धर्म"], en: ["Chandragupta Maurya - Jainism", "Ashoka - Buddhism", "Samudragupta - Hinduism", "Harshavardhana - Sikhism", "Kanishka - Christianity"] }, answer: { hi: "अशोक - बौद्ध धर्म", en: "Ashoka - Buddhism" } },
+            { subject: { hi: "इतिहास", en: "History" }, id: "hist3", image: "indus_valley_artifacts", question: { hi: "ये कलाकृतियाँ किस प्राचीन भारतीय सभ्यता से संबंधित हैं, जो अपनी शहरी योजना और जल निकासी प्रणाली के लिए प्रसिद्ध थी?", en: "These artifacts belong to which ancient Indian civilization, famous for its urban planning and drainage system?" }, options: { hi: ["वैदिक सभ्यता", "सिंधु घाटी सभ्यता", "महाजनपद काल", "मौर्य साम्राज्य", "गुप्त साम्राज्य"], en: ["Vedic Civilization", "Indus Valley Civilization", "Mahajanapada Period", "Mauryan Empire", "Gupta Empire"] }, answer: { hi: "सिंधु घाटी सभ्यता", en: "Indus Valley Civilization" } },
+            { subject: { hi: "इतिहास", en: "History" }, id: "hist4", "image": "mughal_miniature_painting", question: { hi: "यह चित्रकला शैली किस भारतीय साम्राज्य के दौरान फली-फूली, और इसकी क्या विशेषता है?", en: "Which Indian empire saw the flourishing of this painting style, and what is its characteristic feature?" }, options: { hi: ["गुप्त साम्राज्य - धार्मिक भित्ति चित्र", "चोल साम्राज्य - कांस्य मूर्तियां", "मुगल साम्राज्य - दरबारी जीवन और प्रकृति के सूक्ष्म चित्र", "विजयनगर साम्राज्य - मंदिर वास्तुकला", "पाल साम्राज्य - पांडुलिपि चित्रण"], en: ["Gupta Empire - Religious murals", "Chola Empire - Bronze sculptures", "Mughal Empire - Miniature paintings of court life and nature", "Vijayanagara Empire - Temple architecture", "Pala Empire - Manuscript illustrations"] }, answer: { hi: "मुगल साम्राज्य - दरबारी जीवन और प्रकृति के सूक्ष्म चित्र", en: "Mughal Empire - Miniature paintings of court life and nature" } },
+            { subject: { hi: "इतिहास", en: "History" }, id: "hist5", image: "harappan_drainage_system", question: { hi: "यह चित्र सिंधु घाटी सभ्यता की किस अनूठी विशेषता को दर्शाता है, जो उनके उन्नत शहरी नियोजन को उजागर करती है?", en: "What unique feature of the Indus Valley Civilization, highlighting their advanced urban planning, does this image depict?" }, options: { hi: ["किलेबंदी", "जल संचयन प्रणाली", "नियोजित जल निकासी प्रणाली", "अनाज भंडारण", "सार्वजनिक स्नानागार"], en: ["Fortification", "Water harvesting system", "Planned drainage system", "Grain storage", "Public baths"] }, answer: { hi: "नियोजित जल निकासी प्रणाली", en: "Planned drainage system" } },
 
             // Level 5 (Computer/IT)
-            { subject: "कंप्यूटर / आईटी", id: "it1", image: "network_topology", question: "यह चित्र किस प्रकार की नेटवर्क टोपोलॉजी को दर्शाता है, जहाँ सभी डिवाइस एक केंद्रीय हब से जुड़े होते हैं?", options: ["बस टोपोलॉजी", "रिंग टोपोलॉजी", "स्टार टोपोलॉजी", "मेश टोपोलॉजी", "ट्री टोपोलॉजी"], answer: "स्टार टोपोलॉजी" },
-            { subject: "कंप्यूटर / आईटी", id: "it2", image: "flowchart_decision", question: "इस फ्लोचार्ट प्रतीक का क्या अर्थ है, और यह आमतौर पर किस स्थिति में उपयोग होता है?", options: ["शुरुआत/अंत - प्रोग्राम का प्रारंभ", "प्रक्रिया - एक ऑपरेशन", "इनपुट/आउटपुट - डेटा दर्ज करना", "निर्णय - एक शर्त की जाँच", "कनेक्टर - प्रवाह को जोड़ना"], answer: "निर्णय - एक शर्त की जाँच" },
-            { subject: "कंप्यूटर / आईटी", id: "it3", image: "simple_python_loop_generated", question: "इस पायथन कोड स्निपेट का आउटपुट क्या होगा? (मान लें: `for i in range(5): print(i, end='')`)", options: ["01234", "12345", "0 1 2 3 4", "Error", "5"], answer: "01234" },
-            { subject: "कंप्यूटर / आईटी", id: "it4", image: "cloud_computing_diagram", question: "यह चित्र किस कंप्यूटिंग मॉडल को दर्शाता है, जहाँ संसाधन इंटरनेट पर सेवा के रूप में प्रदान किए जाते हैं?", options: ["क्लाइंट-सर्वर मॉडल", "पीयर-टू-पीयर नेटवर्क", "क्लाउड कंप्यूटिंग", "लोकल एरिया नेटवर्क", "मेनफ्रेम कंप्यूटिंग"], answer: "क्लाउड कंप्यूटिंग" },
-            { subject: "कंप्यूटर / आईटी", id: "it5", image: "database_icon", question: "यह आइकन आमतौर पर किस प्रकार के डेटा प्रबंधन प्रणाली का प्रतिनिधित्व करता है, जो संरचित डेटा को संग्रहीत और पुनः प्राप्त करता है?", options: ["वर्ड प्रोसेसर", "स्प्रेडशीट", "डेटाबेस", "प्रेजेंटेशन सॉफ्टवेयर", "वेब ब्राउज़र"], answer: "डेटाबेस" },
+            { subject: { hi: "कंप्यूटर / आईटी", en: "Computer / IT" }, id: "it1", image: "network_topology", question: { hi: "यह चित्र किस प्रकार की नेटवर्क टोपोलॉजी को दर्शाता है, जहाँ सभी डिवाइस एक केंद्रीय हब से जुड़े होते हैं?", en: "What type of network topology does this image depict, where all devices are connected to a central hub?" }, options: { hi: ["बस टोपोलॉजी", "रिंग टोपोलॉजी", "स्टार टोपोलॉजी", "मेश टोपोलॉजी", "ट्री टोपोलॉजी"], en: ["Bus Topology", "Ring Topology", "Star Topology", "Mesh Topology", "Tree Topology"] }, answer: { hi: "स्टार टोपोलॉजी", en: "Star Topology" } },
+            { subject: { hi: "कंप्यूटर / आईटी", en: "Computer / IT" }, id: "it2", image: "flowchart_decision", question: { hi: "इस फ्लोचार्ट प्रतीक का क्या अर्थ है, और यह आमतौर पर किस स्थिति में उपयोग होता है?", en: "What does this flowchart symbol mean, and in what situation is it typically used?" }, options: { hi: ["शुरुआत/अंत - प्रोग्राम का प्रारंभ", "प्रक्रिया - एक ऑपरेशन", "इनपुट/आउटपुट - डेटा दर्ज करना", "निर्णय - एक शर्त की जाँच", "कनेक्टर - प्रवाह को जोड़ना"], en: ["Start/End - Program initiation", "Process - An operation", "Input/Output - Data entry", "Decision - Checking a condition", "Connector - Joining flow"] }, answer: { hi: "निर्णय - एक शर्त की जाँच", en: "Decision - Checking a condition" } },
+            { subject: { hi: "कंप्यूटर / आईटी", en: "Computer / IT" }, id: "it3", image: "simple_python_loop_generated", question: { hi: "इस पायथन कोड स्निपेट का आउटपुट क्या होगा? (मान लें: `for i in range(5): print(i, end='')`)", en: "What will be the output of this Python code snippet? (Assume: `for i in range(5): print(i, end='')`)" }, options: { hi: ["01234", "12345", "0 1 2 3 4", "Error", "5"], en: ["01234", "12345", "0 1 2 3 4", "Error", "5"] }, answer: { hi: "01234", en: "01234" } },
+            { subject: { hi: "कंप्यूटर / आईटी", en: "Computer / IT" }, id: "it4", image: "cloud_computing_diagram", question: { hi: "यह चित्र किस कंप्यूटिंग मॉडल को दर्शाता है, जहाँ संसाधन इंटरनेट पर सेवा के रूप में प्रदान किए जाते हैं?", en: "What computing model does this image depict, where resources are provided as a service over the internet?" }, options: { hi: ["क्लाइंट-सर्वर मॉडल", "पीयर-टू-पीयर नेटवर्क", "क्लाउड कंप्यूटिंग", "लोकल एरिया नेटवर्क", "मेनफ्रेम कंप्यूटिंग"], en: ["Client-Server Model", "Peer-to-Peer Network", "Cloud Computing", "Local Area Network", "Mainframe Computing"] }, answer: { hi: "क्लाउड कंप्यूटिंग", en: "Cloud Computing" } },
+            { subject: { hi: "कंप्यूटर / आईटी", en: "Computer / IT" }, id: "it5", image: "database_icon", question: { hi: "यह आइकन आमतौर पर किस प्रकार के डेटा प्रबंधन प्रणाली का प्रतिनिधित्व करता है, जो संरचित डेटा को संग्रहीत और पुनः प्राप्त करता है?", en: "What type of data management system, which stores and retrieves structured data, does this icon typically represent?" }, options: { hi: ["वर्ड प्रोसेसर", "स्प्रेडशीट", "डेटाबेस", "प्रेजेंटेशन सॉफ्टवेयर", "वेब ब्राउज़र"], en: ["Word Processor", "Spreadsheet", "Database", "Presentation Software", "Web Browser"] }, answer: { hi: "डेटाबेस", en: "Database" } },
 
             // Level 6 (General Knowledge)
-            { subject: "सामान्य ज्ञान", id: "gk1", image: "statue_of_liberty", question: "यह प्रसिद्ध स्मारक कहाँ स्थित है और यह किस देश को उपहार में दिया गया था?", options: ["लंदन - यूनाइटेड किंगडम", "पेरिस - फ्रांस", "न्यूयॉर्क - संयुक्त राज्य अमेरिका", "बर्लिन - जर्मनी", "टोक्यो - जापान"], answer: "न्यूयॉर्क - संयुक्त राज्य अमेरिका" },
-            { subject: "सामान्य ज्ञान", id: "gk2", image: "map_of_africa", question: "इस महाद्वीप पर स्थित सबसे ऊँचा पर्वत कौन सा है?", options: ["माउंट एवरेस्ट", "माउंट किलिमंजारो", "माउंट फ़ूजी", "माउंट ब्लैंक", "माउंट मैкинले"], answer: "माउंट किलिमंजारो" },
-            { subject: "सामान्य ज्ञान", id: "gk3", image: "national_bird_peacock", question: "यह भारत का राष्ट्रीय पक्षी है। इसकी मुख्य विशेषता क्या है?", options: ["यह बहुत तेज़ दौड़ता है", "यह अपनी सुंदर पूंछ के पंखों के लिए जाना जाता है", "यह रात में शिकार करता है", "यह पानी में रहता है", "यह उड़ नहीं सकता"], answer: "यह अपनी सुंदर पूंछ के पंखों के लिए जाना जाता है" },
-            { subject: "सामान्य ज्ञान", id: "gk4", image: "seven_wonders_colosseum", question: "यह प्राचीन अखाड़ा किस शहर में स्थित है और यह किस साम्राज्य का प्रतीक है?", options: ["एथेंस - ग्रीक साम्राज्य", "रोम - रोमन साम्राज्य", "इस्तांबुल - ओटोमन साम्राज्य", "काहिरा - मिस्र साम्राज्य", "बीजिंग - चीनी साम्राज्य"], answer: "रोम - रोमन साम्राज्य" },
-            { subject: "सामान्य ज्ञान", id: "gk5", image: "solar_system_planets", question: "इस सौरमंडल के चित्र में, सूर्य से दूसरा ग्रह कौन सा है?", options: ["मंगल", "बृहस्पति", "शुक्र", "पृथ्वी", "शनि"], answer: "शुक्र" },
+            { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk1", image: "statue_of_liberty", question: { hi: "यह प्रसिद्ध स्मारक कहाँ स्थित है और यह किस देश को उपहार में दिया गया था?", en: "Where is this famous monument located and which country was it gifted to?" }, options: { hi: ["लंदन - यूनाइटेड किंगडम", "पेरिस - फ्रांस", "न्यूयॉर्क - संयुक्त राज्य अमेरिका", "बर्लिन - जर्मनी", "टोक्यो - जापान"], en: ["London - United Kingdom", "Paris - France", "New York - United States", "Berlin - Germany", "Tokyo - Japan"] }, answer: { hi: "न्यूयॉर्क - संयुक्त राज्य अमेरिका", en: "New York - United States" } },
+            { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk2", image: "map_of_africa", question: { hi: "इस महाद्वीप पर स्थित सबसे ऊँचा पर्वत कौन सा है?", en: "What is the highest mountain located on this continent?" }, options: { hi: ["माउंट एवरेस्ट", "माउंट किलिमंजारो", "माउंट फ़ूजी", "माउंट ब्लैंक", "माउंट मैकिनले"], en: ["Mount Everest", "Mount Kilimanjaro", "Mount Fuji", "Mount Blanc", "Mount McKinley"] }, answer: { hi: "माउंट किलिमंजारो", en: "Mount Kilimanjaro" } },
+            { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk3", image: "national_bird_peacock", question: { hi: "यह भारत का राष्ट्रीय पक्षी है। इसकी मुख्य विशेषता क्या है?", en: "This is the national bird of India. What is its main characteristic?" }, options: { hi: ["यह बहुत तेज़ दौड़ता है", "यह अपनी सुंदर पूंछ के पंखों के लिए जाना जाता है", "यह रात में शिकार करता है", "यह पानी में रहता है", "यह उड़ नहीं सकता"], en: ["It runs very fast", "It is known for its beautiful tail feathers", "It hunts at night", "It lives in water", "It cannot fly"] }, answer: { hi: "यह अपनी सुंदर पूंछ के पंखों के लिए जाना जाता है", en: "It is known for its beautiful tail feathers" } },
+            { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk4", image: "seven_wonders_colosseum", question: { hi: "यह प्राचीन अखाड़ा किस शहर में स्थित है और यह किस साम्राज्य का प्रतीक है?", en: "In which city is this ancient amphitheater located, and which empire does it symbolize?" }, options: { hi: ["एथेंस - ग्रीक साम्राज्य", "रोम - रोमन साम्राज्य", "इस्तांबुल - ओटोमन साम्राज्य", "काहिरा - मिस्र साम्राज्य", "बीजिंग - चीनी साम्राज्य"], en: ["Athens - Greek Empire", "Rome - Roman Empire", "Istanbul - Ottoman Empire", "Cairo - Egyptian Empire", "Beijing - Chinese Empire"] }, answer: { hi: "रोम - रोमन साम्राज्य", en: "Rome - Roman Empire" } },
+            { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk5", image: "solar_system_planets", question: { hi: "इस सौरमंडल के चित्र में, सूर्य से दूसरा ग्रह कौन सा है?", en: "In this image of the solar system, which is the second planet from the Sun?" }, options: { hi: ["मंगल", "बृहस्पति", "शुक्र", "पृथ्वी", "शनि"], en: ["Mars", "Jupiter", "Venus", "Earth", "Saturn"] }, answer: { hi: "शुक्र", en: "Venus" } },
 
             // Level 7 (Language)
-            { subject: "भाषा", id: "lang1", image: "person_deep_thought", question: "इस चित्र में व्यक्ति की मुद्रा और चेहरे के भाव क्या दर्शाते हैं?", options: ["खुशी और उत्साह", "गहरी सोच या चिंता", "गुस्सा और निराशा", "नींद और आराम", "आश्चर्य और भ्रम"], answer: "गहरी सोच या चिंता" },
-            { subject: "भाषा", id: "lang2", image: "children_playing_happily", question: "इस चित्र को देखकर एक शीर्षक सुझाएँ जिसमें 'खुशी' शब्द का उपयोग हो।", options: ["खेलते हुए बच्चे", "खुशी से खेलते हुए बच्चे", "बच्चे और खिलौने", "बच्चों का पार्क", "शरारती बच्चे"], answer: "खुशी से खेलते हुए बच्चे" },
-            { subject: "भाषा", id: "lang3", image: "old_book_open", question: "इस पुरानी खुली किताब को देखकर आप किस प्रकार की कहानी या जानकारी की उम्मीद करेंगे?", options: ["आधुनिक विज्ञान", "भविष्य की तकनीक", "ऐतिहासिक ग्रंथ या प्राचीन ज्ञान", "नवीनतम समाचार", "कॉमिक बुक"], answer: "ऐतिहासिक ग्रंथ या प्राचीन ज्ञान" },
-            { subject: "भाषा", id: "lang4", image: "person_speaking_microphone", question: "यह व्यक्ति क्या कर रहा है, और इस क्रिया के लिए उपयुक्त क्रिया शब्द क्या होगा?", options: ["पढ़ना - पढ़ना", "लिखना - लिखना", "भाषण देना - बोलना", "सुनना - सुनना", "गाना - गाना"], answer: "भाषण देना - बोलना" },
-            { subject: "भाषा", id: "lang5", image: "puzzle_pieces_fitting", question: "इस चित्र में पहेली के टुकड़े एक साथ फिट हो रहे हैं। यह किस अवधारणा का प्रतीक हो सकता है?", options: ["अव्यवस्था", "समस्या का समाधान या सामंजस्य", "अलग होना", "प्रतियोगिता", "अधूरापन"], answer: "समस्या का समाधान या सामंजस्य" },
+            { subject: { hi: "भाषा", en: "Language" }, id: "lang1", image: "person_deep_thought", question: { hi: "इस चित्र में व्यक्ति की मुद्रा और चेहरे के भाव क्या दर्शाते हैं?", en: "What do the person's posture and facial expression in this image indicate?" }, options: { hi: ["खुशी और उत्साह", "गहरी सोच या चिंता", "गुस्सा और निराशा", "नींद और आराम", "आश्चर्य और भ्रम"], en: ["Happiness and excitement", "Deep thought or worry", "Anger and frustration", "Sleep and rest", "Surprise and confusion"] }, answer: { hi: "गहरी सोच या चिंता", en: "Deep thought or worry" } },
+            { subject: { hi: "भाषा", en: "Language" }, id: "lang2", image: "children_playing_happily", question: { hi: "इस चित्र को देखकर एक शीर्षक सुझाएँ जिसमें 'खुशी' शब्द का उपयोग हो।", en: "Suggest a title for this image using the word 'happiness'." }, options: { hi: ["खेलते हुए बच्चे", "खुशी से खेलते हुए बच्चे", "बच्चे और खिलौने", "बच्चों का पार्क", "शरारती बच्चे"], en: ["Playing Children", "Children Playing Happily", "Children and Toys", "Children's Park", "Naughty Children"] }, answer: { hi: "खुशी से खेलते हुए बच्चे", en: "Children Playing Happily" } },
+            { subject: { hi: "भाषा", en: "Language" }, id: "lang3", image: "old_book_open", question: { hi: "इस पुरानी खुली किताब को देखकर आप किस प्रकार की कहानी या जानकारी की उम्मीद करेंगे?", en: "Looking at this old open book, what kind of story or information would you expect?" }, options: { hi: ["आधुनिक विज्ञान", "भविष्य की तकनीक", "ऐतिहासिक ग्रंथ या प्राचीन ज्ञान", "नवीनतम समाचार", "कॉमिक बुक"], en: ["Modern Science", "Future Technology", "Historical text or Ancient Knowledge", "Latest News", "Comic Book"] }, answer: { hi: "ऐतिहासिक ग्रंथ या प्राचीन ज्ञान", en: "Historical text or Ancient Knowledge" } },
+            { subject: { hi: "भाषा", en: "Language" }, id: "lang4", image: "person_speaking_microphone", question: { hi: "यह व्यक्ति क्या कर रहा है, और इस क्रिया के लिए उपयुक्त क्रिया शब्द क्या होगा?", en: "What is this person doing, and what would be the appropriate verb for this action?" }, options: { hi: ["पढ़ना - पढ़ना", "लिखना - लिखना", "भाषण देना - बोलना", "सुनना - सुनना", "गाना - गाना"], en: ["Reading - to read", "Writing - to write", "Giving a speech - to speak", "Listening - to listen", "Singing - to sing"] }, answer: { hi: "भाषण देना - बोलना", en: "Giving a speech - to speak" } },
+            { subject: { hi: "भाषा", en: "Language" }, id: "lang5", image: "puzzle_pieces_fitting", question: { hi: "इस चित्र में पहेली के टुकड़े एक साथ फिट हो रहे हैं। यह किस अवधारणा का प्रतीक हो सकता है?", en: "In this image, puzzle pieces are fitting together. What concept might this symbolize?" }, options: { hi: ["अव्यवस्था", "समस्या का समाधान या सामंजस्य", "अलग होना", "प्रतियोगिता", "अधूरापन"], en: ["Disorder", "Problem-solving or Harmony", "Separation", "Competition", "Incompleteness"] }, answer: { hi: "समस्या का समाधान या सामंजस्य", en: "Problem-solving or Harmony" } },
 
             // Level 8 (Science - Advanced)
-            { subject: "विज्ञान", id: "science6", image: "human_brain_lobes", question: "इस चित्र में मानव मस्तिष्क के विभिन्न लोब (lobes) दर्शाए गए हैं। 'फ्रंटल लोब' का मुख्य कार्य क्या है?", options: ["दृष्टि", "श्रवण", "निर्णय लेना और योजना बनाना", "संतुलन", "स्पर्श संवेदना"], answer: "निर्णय लेना और योजना बनाना" },
-            { subject: "विज्ञान", id: "science7", image: "water_cycle_diagram", question: "यह चित्र जल चक्र को दर्शाता है। 'संघनन' की प्रक्रिया कहाँ होती है?", options: ["महासागरों में", "बादलों में", "भूमिगत जल में", "नदियों में", "पौधों में"], answer: "बादलों में" },
-            { subject: "विज्ञान", id: "science8", image: "food_chain_web", question: "इस खाद्य श्रृंखला/जाल में, 'उपभोक्ता' कौन से जीव हैं?", options: ["उत्पादक (पौधे)", "अपघटक (बैक्टीरिया)", "शाकाहारी और मांसाहारी", "केवल मांसाहारी", "केवल शाकाहारी"], answer: "शाकाहारी और मांसाहारी" },
-            { subject: "विज्ञान", id: "science9", image: "solar_eclipse_diagram", question: "यह चित्र किस खगोलीय घटना को दर्शाता है, जब चंद्रमा सूर्य और पृथ्वी के बीच आता है?", options: ["चंद्र ग्रहण", "सूर्य ग्रहण", "उल्का वर्षा", "धूमकेतु का गुजरना", "तारों का टिमटिमाना"], answer: "सूर्य ग्रहण" },
-            { subject: "विज्ञान", id: "science10", image: "dna_replication_process", question: "यह चित्र DNA प्रतिकृति की प्रक्रिया को दर्शाता है। इस प्रक्रिया का मुख्य उद्देश्य क्या है?", options: ["प्रोटीन संश्लेषण", "कोशिका विभाजन से पहले आनुवंशिक सामग्री की प्रतिलिपि बनाना", "ऊर्जा उत्पादन", "अपशिष्ट निकालना", "कोशिका की पहचान"], answer: "कोशिका विभाजन से पहले आनुवंशिक सामग्री की प्रतिलिपि बनाना" },
+            { subject: { hi: "विज्ञान", en: "Science" }, id: "science6", image: "human_brain_lobes", question: { hi: "इस चित्र में मानव मस्तिष्क के विभिन्न लोब (lobes) दर्शाए गए हैं। 'फ्रंटल लोब' का मुख्य कार्य क्या है?", en: "This image shows different lobes of the human brain. What is the main function of the 'Frontal Lobe'?" }, options: { hi: ["दृष्टि", "श्रवण", "निर्णय लेना और योजना बनाना", "संतुलन", "स्पर्श संवेदना"], en: ["Vision", "Hearing", "Decision making and planning", "Balance", "Touch sensation"] }, answer: { hi: "निर्णय लेना और योजना बनाना", en: "Decision making and planning" } },
+            { subject: { hi: "विज्ञान", en: "Science" }, id: "science7", image: "water_cycle_diagram", question: { hi: "यह चित्र जल चक्र को दर्शाता है। 'संघनन' की प्रक्रिया कहाँ होती है?", en: "This image illustrates the water cycle. Where does the process of 'condensation' occur?" }, options: { hi: ["महासागरों में", "बादलों में", "भूमिगत जल में", "नदियों में", "पौधों में"], en: ["In oceans", "In clouds", "In groundwater", "In rivers", "In plants"] }, answer: { hi: "बादलों में", en: "In clouds" } },
+            { subject: { hi: "विज्ञान", en: "Science" }, id: "science8", image: "food_chain_web", question: { hi: "इस खाद्य श्रृंखला/जाल में, 'उपभोक्ता' कौन से जीव हैं?", en: "In this food chain/web, which organisms are 'consumers'?" }, options: { hi: ["उत्पादक (पौधे)", "अपघटक (बैक्टीरिया)", "शाकाहारी और मांसाहारी", "केवल मांसाहारी", "केवल शाकाहारी"], en: ["Producers (plants)", "Decomposers (bacteria)", "Herbivores and Carnivores", "Only Carnivores", "Only Herbivores"] }, answer: { hi: "शाकाहारी और मांसाहारी", en: "Herbivores and Carnivores" } },
+            { subject: { hi: "विज्ञान", en: "Science" }, id: "science9", image: "solar_eclipse_diagram", question: { hi: "यह चित्र किस खगोलीय घटना को दर्शाता है, जब चंद्रमा सूर्य और पृथ्वी के बीच आता है?", en: "What astronomical phenomenon does this image depict, when the Moon comes between the Sun and Earth?" }, options: { hi: ["चंद्र ग्रहण", "सूर्य ग्रहण", "उल्का वर्षा", "धूमकेतु का गुजरना", "तारों का टिमटिमाना"], en: ["Lunar eclipse", "Solar eclipse", "Meteor shower", "Comet passing", "Twinkling of stars"] }, answer: { hi: "सूर्य ग्रहण", en: "Solar eclipse" } },
+            { subject: { hi: "विज्ञान", en: "Science" }, id: "science10", image: "dna_replication_process", question: { hi: "यह चित्र DNA प्रतिकृति की प्रक्रिया को दर्शाता है। इस प्रक्रिया का मुख्य उद्देश्य क्या है?", en: "This image shows the process of DNA replication. What is the main purpose of this process?" }, options: { hi: ["प्रोटीन संश्लेषण", "कोशिका विभाजन से पहले आनुवंशिक सामग्री की प्रतिलिपि बनाना", "ऊर्जा उत्पादन", "अपशिष्ट निकालना", "कोशिका की पहचान"], en: ["Protein synthesis", "Copying genetic material before cell division", "Energy production", "Waste removal", "Cell identification"] }, answer: { hi: "कोशिका विभाजन से पहले आनुवंशिक सामग्री की प्रतिलिपि बनाना", en: "Copying genetic material before cell division" } },
 
             // Level 9 (Maths - Advanced) - Dynamic images
-            { subject: "गणित", id: "math6", image: "quadratic_equation_graph", question: "यह ग्राफ एक द्विघात समीकरण को दर्शाता है। इस समीकरण के कितने वास्तविक मूल (roots) हैं?", options: ["कोई नहीं", "एक", "दो", "तीन", "अनंत"], answer: "दो" }, // Assuming a parabola crossing x-axis twice
-            { subject: "गणित", id: "math7", image: "volume_of_cylinder_generated", question: "इस बेलन की त्रिज्या 3 सेमी और ऊँचाई 10 सेमी है। इसका आयतन क्या होगा? (π ≈ 3.14)", options: ["30 घन सेमी", "90 घन सेमी", "282.6 घन सेमी", "94.2 घन सेमी", "188.4 घन सेमी"], answer: "282.6 घन सेमी" }, // Volume = π * r^2 * h = 3.14 * 3^2 * 10 = 3.14 * 9 * 10 = 282.6
-            { subject: "गणित", id: "math8", image: "probability_dice_roll_generated", question: "यह एक पासे को दर्शाता है। एक पासे को एक बार फेंकने पर सम संख्या आने की क्या प्रायिकता है?", options: ["1/6", "1/3", "1/2", "2/3", "5/6"], answer: "1/2" },
-            { subject: "गणित", id: "math9", image: "set_theory_venn_diagram_generated", question: "इस वेन आरेख में, छायांकित क्षेत्र (shaded region) क्या दर्शाता है?", options: ["A union B", "A intersection B", "A minus B", "B minus A", "A का पूरक"], answer: "A intersection B" }, // Assuming shaded is the overlap
-            { subject: "गणित", id: "math10", image: "slope_of_line_graph_generated", question: "इस सीधी रेखा का ढलान (slope) क्या है?", options: ["धनात्मक", "ऋणात्मक", "शून्य", "अपरिभाषित", "1"], answer: "धनात्मक" }, // Assuming an upward sloping line
+            { subject: { hi: "गणित", en: "Math" }, id: "math6", image: "quadratic_equation_graph", question: { hi: "यह ग्राफ एक द्विघात समीकरण को दर्शाता है। इस समीकरण के कितने वास्तविक मूल (roots) हैं?", en: "This graph shows a quadratic equation. How many real roots does this equation have?" }, options: { hi: ["कोई नहीं", "एक", "दो", "तीन", "अनंत"], en: ["None", "One", "Two", "Three", "Infinite"] }, answer: { hi: "दो", en: "Two" } }, // Assuming a parabola crossing x-axis twice
+            { subject: { hi: "गणित", en: "Math" }, id: "math7", image: "volume_of_cylinder_generated", question: { hi: "इस बेलन की त्रिज्या 3 सेमी और ऊँचाई 10 सेमी है। इसका आयतन क्या होगा? (π ≈ 3.14)", en: "The radius of this cylinder is 3 cm and the height is 10 cm. What is its volume? (π ≈ 3.14)" }, options: { hi: ["30 घन सेमी", "90 घन सेमी", "282.6 घन सेमी", "94.2 घन सेमी", "188.4 घन सेमी"], en: ["30 cubic cm", "90 cubic cm", "282.6 cubic cm", "94.2 cubic cm", "188.4 cubic cm"] }, answer: { hi: "282.6 घन सेमी", en: "282.6 cubic cm" } }, // Volume = π * r^2 * h = 3.14 * 3^2 * 10 = 3.14 * 9 * 10 = 282.6
+            { subject: { hi: "गणित", en: "Math" }, id: "math8", image: "probability_dice_roll_generated", question: { hi: "यह एक पासे को दर्शाता है। एक पासे को एक बार फेंकने पर सम संख्या आने की क्या प्रायिकता है?", en: "This depicts a die. What is the probability of rolling an even number when a die is thrown once?" }, options: { hi: ["1/6", "1/3", "1/2", "2/3", "5/6"], en: ["1/6", "1/3", "1/2", "2/3", "5/6"] }, answer: { hi: "1/2", en: "1/2" } },
+            { subject: { hi: "गणित", en: "Math" }, id: "math9", image: "set_theory_venn_diagram_generated", question: { hi: "इस वेन आरेख में, छायांकित क्षेत्र (shaded region) क्या दर्शाता है?", en: "In this Venn diagram, what does the shaded region represent?" }, options: { hi: ["A union B", "A intersection B", "A minus B", "B minus A", "A का पूरक"], en: ["A union B", "A intersection B", "A minus B", "B minus A", "Complement of A"] }, answer: { hi: "A intersection B", en: "A intersection B" } }, // Assuming shaded is the overlap
+            { subject: { hi: "गणित", en: "Math" }, id: "math10", image: "slope_of_line_graph_generated", question: { hi: "इस सीधी रेखा का ढलान (slope) क्या है?", en: "What is the slope of this straight line?" }, options: { hi: ["धनात्मक", "ऋणात्मक", "शून्य", "अपरिभाषित", "1"], en: ["Positive", "Negative", "Zero", "Undefined", "1"] }, answer: { hi: "धनात्मक", en: "Positive" } }, // Assuming an upward sloping line
 
             // Level 10 (GK - Advanced)
-            { subject: "सामान्य ज्ञान", id: "gk6", image: "united_nations_building", question: "यह इमारत किस अंतर्राष्ट्रीय संगठन का मुख्यालय है, जिसका उद्देश्य विश्व शांति और सुरक्षा बनाए रखना है?", options: ["विश्व बैंक", "अंतर्राष्ट्रीय मुद्रा कोष", "संयुक्त राष्ट्र", "विश्व व्यापार संगठन", "नाटो"], answer: "संयुक्त राष्ट्र" },
-            { subject: "सामान्य ज्ञान", id: "gk7", image: "amazon_river_forest", question: "यह नदी और इसके आसपास का जंगल किस महाद्वीप पर स्थित है, और यह अपनी जैव विविधता के लिए प्रसिद्ध है?", options: ["एशिया - हिमालय", "अफ्रीका - सहारा", "दक्षिण अमेरिका - अमेज़न", "उत्तरी अमेरिका - रॉकी", "यूरोप - आल्प्स"], answer: "दक्षिण अमेरिका - अमेज़न" },
-            { subject: "सामान्य ज्ञान", id: "gk8", image: "india_gate_delhi", question: "यह स्मारक किस भारतीय शहर में स्थित है और यह किस युद्ध में शहीद हुए सैनिकों की याद में बनाया गया था?", options: ["मुंबई - द्वितीय विश्व युद्ध", "चेन्नई - कारगिल युद्ध", "दिल्ली - प्रथम विश्व युद्ध", "कोलकाता - भारत-पाक युद्ध", "बेंगलुरु - प्लासी का युद्ध"], answer: "दिल्ली - प्रथम विश्व युद्ध" },
-            { subject: "सामान्य ज्ञान", id: "gk9", image: "iss_in_space", question: "यह अंतरिक्ष में तैरती हुई संरचना क्या है, जो विभिन्न देशों के सहयोग से बनाई गई है?", options: ["हबल स्पेस टेलीस्कोप", "अंतर्राष्ट्रीय अंतरिक्ष स्टेशन (ISS)", "स्पेस शटल", "चंद्रयान", "मंगलयान"], answer: "अंतर्राष्ट्रीय अंतरिक्ष स्टेशन (ISS)" },
-            { subject: "सामान्य ज्ञान", id: "gk10", image: "great_barrier_reef", question: "यह दुनिया की सबसे बड़ी प्रवाल भित्ति प्रणाली कहाँ स्थित है, और यह किस महाद्वीप के तट पर है?", options: ["प्रशांत महासागर - एशिया", "अटलांटिक महासागर - अफ्रीका", "हिंद महासागर - भारत", "प्रशांत महासागर - ऑस्ट्रेलिया", "आर्कटिक महासागर - यूरोप"], answer: "प्रशांत महासागर - ऑस्ट्रेलिया" },
+            { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk6", image: "united_nations_building", question: { hi: "यह इमारत किस अंतर्राष्ट्रीय संगठन का मुख्यालय है, जिसका उद्देश्य विश्व शांति और सुरक्षा बनाए रखना है?", en: "This building is the headquarters of which international organization, whose objective is to maintain world peace and security?" }, options: { hi: ["विश्व बैंक", "अंतर्राष्ट्रीय मुद्रा कोष", "संयुक्त राष्ट्र", "विश्व व्यापार संगठन", "नाटो"], en: ["World Bank", "International Monetary Fund", "United Nations", "World Trade Organization", "NATO"] }, answer: { hi: "संयुक्त राष्ट्र", en: "United Nations" } },
+            { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk7", image: "amazon_river_forest", question: { hi: "यह नदी और इसके आसपास का जंगल किस महाद्वीप पर स्थित है, और यह अपनी जैव विविधता के लिए प्रसिद्ध है?", en: "This river and its surrounding forest are located on which continent, and are famous for their biodiversity?" }, options: { hi: ["एशिया - हिमालय", "अफ्रीका - सहारा", "दक्षिण अमेरिका - अमेज़न", "उत्तरी अमेरिका - रॉकी", "यूरोप - आल्प्स"], en: ["Asia - Himalayas", "Africa - Sahara", "South America - Amazon", "North America - Rockies", "Europe - Alps"] }, answer: { hi: "दक्षिण अमेरिका - अमेज़न", en: "South America - Amazon" } },
+            { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk8", image: "india_gate_delhi", question: { hi: "यह स्मारक किस भारतीय शहर में स्थित है और यह किस युद्ध में शहीद हुए सैनिकों की याद में बनाया गया था?", en: "In which Indian city is this monument located, and in memory of which war's fallen soldiers was it built?" }, options: { hi: ["मुंबई - द्वितीय विश्व युद्ध", "चेन्नई - कारगिल युद्ध", "दिल्ली - प्रथम विश्व युद्ध", "कोलकाता - भारत-पाक युद्ध", "बेंगलुरु - प्लासी का युद्ध"], en: ["Mumbai - World War II", "Chennai - Kargil War", "Delhi - World War I", "Kolkata - Indo-Pak War", "Bengaluru - Battle of Plassey"] }, answer: { hi: "दिल्ली - प्रथम विश्व युद्ध", en: "Delhi - World War I" } },
+            { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk9", image: "iss_in_space", question: { hi: "यह अंतरिक्ष में तैरती हुई संरचना क्या है, जो विभिन्न देशों के सहयोग से बनाई गई है?", en: "What is this floating structure in space, built through the collaboration of various countries?" }, options: { hi: ["हबल स्पेस टेलीस्कोप", "अंतर्राष्ट्रीय अंतरिक्ष स्टेशन (ISS)", "स्पेस शटल", "चंद्रयान", "मंगलयान"], en: ["Hubble Space Telescope", "International Space Station (ISS)", "Space Shuttle", "Chandrayaan", "Mangalyaan"] }, answer: { hi: "अंतर्राष्ट्रीय अंतरिक्ष स्टेशन (ISS)", en: "International Space Station (ISS)" } },
+            { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk10", image: "great_barrier_reef", question: { hi: "यह दुनिया की सबसे बड़ी प्रवाल भित्ति प्रणाली कहाँ स्थित है, और यह किस महाद्वीप के तट पर है?", en: "Where is the world's largest coral reef system located, and off the coast of which continent is it found?" }, options: { hi: ["प्रशांत महासागर - एशिया", "अटलांटिक महासागर - अफ्रीका", "हिंद महासागर - भारत", "प्रशांत महासागर - ऑस्ट्रेलिया", "आर्कटिक महासागर - यूरोप"], en: ["Pacific Ocean - Asia", "Atlantic Ocean - Africa", "Indian Ocean - India", "Pacific Ocean - Australia", "Arctic Ocean - Europe"] }, answer: { hi: "प्रशांत महासागर - ऑस्ट्रेलिया", en: "Pacific Ocean - Australia" } },
         ];
 
         // Image map for local image paths and generated SVG functions
@@ -641,9 +762,12 @@
 
         // DOM elements
         const quizIntro = document.getElementById('quiz-intro');
+        const languageSelectionScreen = document.getElementById('language-selection-screen');
         const quizQuestionsScreen = document.getElementById('quiz-questions');
         const quizResultsScreen = document.getElementById('quiz-results'); // Still exists for overall score if not all levels passed
         const startQuizButton = document.getElementById('start-quiz-button');
+        const selectHindiButton = document.getElementById('select-hindi-button');
+        const selectEnglishButton = document.getElementById('select-english-button');
         const restartQuizButton = document.getElementById('restart-quiz-button'); // For final results screen
         const currentLevelDisplay = document.getElementById('current-level-display');
         const currentQuestionNumberSpan = document.getElementById('current-question-number');
@@ -671,7 +795,7 @@
 
 
         // Ensure all essential elements are found
-        if (!quizIntro || !quizQuestionsScreen || !startQuizButton || !timerProgressBar || !optionsContainer || !levelResultScreen) {
+        if (!quizIntro || !languageSelectionScreen || !quizQuestionsScreen || !startQuizButton || !timerProgressBar || !optionsContainer || !levelResultScreen || !selectHindiButton || !selectEnglishButton) {
             console.error("Error: One or more essential DOM elements not found. Check HTML IDs.");
             document.body.innerHTML = '<div class="flex items-center justify-center min-h-screen bg-red-100 text-red-800 text-xl font-bold">क्षमा करें, प्रश्नोत्तरी लोड करने में एक महत्वपूर्ण त्रुटि हुई है। कृपया बाद में पुनः प्रयास करें।</div>';
         }
@@ -755,26 +879,34 @@
                     return;
                 }
 
-                // Correctly calculate and display current level and question number within the level
+                // Update level display
                 currentLevelDisplay.textContent = currentLevel;
                 currentQuestionNumberSpan.textContent = (currentQuestionGlobalIndex % QUESTIONS_PER_LEVEL) + 1;
-                questionSubjectSpan.textContent = currentQuestion.subject;
+                questionSubjectSpan.textContent = currentQuestion.subject[currentLanguage];
 
-                // Check if the image is a generated SVG function or a file path
+                // Image switching: Hide old image instantly
+                questionImage.classList.add('image-hidden');
+                questionImage.src = ''; // Clear src to make it disappear
+
+                // Set new image source after a tiny delay for visual effect, or immediately
+                // For "instant and seamless", setting src directly is best.
+                // The class for opacity transition will handle the "disappear" and "appear" effect.
                 if (typeof imageMap[currentQuestion.image] === 'function') {
                     questionImage.src = imageMap[currentQuestion.image](); // Call the function to get SVG data URL
                 } else {
                     questionImage.src = imageMap[currentQuestion.image]; // Use the direct path
                 }
+                questionImage.classList.remove('image-hidden'); // Make new image visible
+                questionImage.classList.add('image-visible'); // Add visible class for transition
                 
                 questionImage.alt = `Question Image for ${currentQuestion.id}`;
-                questionText.textContent = currentQuestion.question;
+                questionText.textContent = currentQuestion.question[currentLanguage];
 
                 optionsContainer.innerHTML = ''; // Clear previous options
 
                 // Randomize options
-                let optionsToDisplay = [...currentQuestion.options];
-                const correctAnswer = currentQuestion.answer;
+                let optionsToDisplay = [...currentQuestion.options[currentLanguage]];
+                const correctAnswer = currentQuestion.answer[currentLanguage];
 
                 // Remove the correct answer from the temporary array
                 const correctAnswerIndex = optionsToDisplay.indexOf(correctAnswer);
@@ -825,7 +957,7 @@
                 startTimer();
             } catch (error) {
                 console.error("Error during renderQuiz:", error);
-                showMessage("प्रश्नोत्तरी लोड करने में त्रुटि हुई। कृपया पुनः प्रयास करें।");
+                showMessage(langText[currentLanguage].messageBoxError);
                 restartQuiz();
             }
         }
@@ -845,8 +977,9 @@
             });
 
             const currentQuestion = shuffledQuestions[currentQuestionGlobalIndex];
+            const correctAnswer = currentQuestion.answer[currentLanguage]; // Get correct answer for current language
 
-            if (option !== null && option === currentQuestion.answer) {
+            if (option !== null && option === correctAnswer) {
                 levelCorrectAnswers++;
                 totalCorrectAnswers++;
                 if (clickedButton) {
@@ -861,7 +994,7 @@
                 }
                 // Highlight correct answer
                 Array.from(optionsContainer.children).forEach(btn => {
-                    if (btn.textContent.includes(currentQuestion.answer)) {
+                    if (btn.textContent.includes(correctAnswer)) {
                         btn.classList.add('bg-green-200', 'border-green-400', 'text-green-800');
                     }
                 });
@@ -901,9 +1034,12 @@
             const percentage = (levelCorrectAnswers / questionsAnsweredInLevel) * 100;
 
             let levelPassed = false;
+            // Level 1 to 5: 3 correct answers to pass
             if (currentLevel >= 1 && currentLevel <= 5) {
                 levelPassed = levelCorrectAnswers >= 3;
-            } else if (currentLevel >= 6 && currentLevel <= TOTAL_LEVELS) {
+            }
+            // Level 6 to 10: 4 correct answers to pass
+            else if (currentLevel >= 6 && currentLevel <= TOTAL_LEVELS) {
                 levelPassed = levelCorrectAnswers >= 4;
             }
             console.log(`Level ${currentLevel} completed. Correct: ${levelCorrectAnswers}, Incorrect: ${incorrectCount}, Percentage: ${percentage.toFixed(2)}%. Passed: ${levelPassed}`);
@@ -928,7 +1064,7 @@
             levelPercentage.textContent = percentage.toFixed(2);
 
             if (passed) {
-                levelResultMessage.textContent = "शानदार! 🎉 आपने यह स्तर सफलतापूर्वक पूरा कर लिया है। आगे बढ़ो!";
+                levelResultMessage.textContent = langText[currentLanguage].levelPassed(currentLevel);
                 levelResultMessage.classList.remove('text-red-600');
                 levelResultMessage.classList.add('text-green-700');
                 nextLevelButton.classList.remove('hidden'); // Show Next Level button
@@ -942,7 +1078,7 @@
                      nextLevelButton.classList.remove('hidden'); // Ensure it's visible for intermediate levels
                 }
             } else {
-                levelResultMessage.textContent = "ओह नहीं! 😔 आप यह स्तर पास नहीं कर सके। कोई बात नहीं, अगली बार और अच्छा प्रयास करें।";
+                levelResultMessage.textContent = langText[currentLanguage].levelFailed(currentLevel);
                 levelResultMessage.classList.remove('text-green-700');
                 levelResultMessage.classList.add('text-red-600');
                 nextLevelButton.classList.add('hidden'); // Hide Next Level button if failed
@@ -1017,6 +1153,7 @@
             quizIntro.classList.remove('hidden'); // Show intro screen
             congratulationsModal.classList.add('hidden'); // Hide congratulations
             confettiContainer.innerHTML = ''; // Clear confetti
+            updateLanguageUI(); // Reset UI text to default (or last chosen)
         }
 
         /**
@@ -1024,6 +1161,7 @@
          */
         function hideAllScreens() {
             quizIntro.classList.add('hidden');
+            languageSelectionScreen.classList.add('hidden');
             quizQuestionsScreen.classList.add('hidden');
             quizResultsScreen.classList.add('hidden');
             congratulationsModal.classList.add('hidden');
@@ -1031,32 +1169,60 @@
         }
 
         /**
-         * Starts the quiz by showing the first question.
+         * Shows the language selection screen.
          */
-        function startQuiz() {
+        function showLanguageSelectionScreen() {
+            hideAllScreens();
+            languageSelectionScreen.classList.remove('hidden');
+            updateLanguageUI(); // Ensure language prompt is updated
+        }
+
+        /**
+         * Starts the quiz in the selected language.
+         * @param {string} lang - The selected language ('hi' or 'en').
+         */
+        function startQuizInSelectedLanguage(lang) {
+            currentLanguage = lang;
+            updateLanguageUI(); // Update all UI elements to the selected language
             try {
-                console.log("startQuiz function called.");
+                console.log("startQuizInSelectedLanguage function called with language:", currentLanguage);
                 shuffleQuestions();
                 currentQuestionGlobalIndex = 0;
                 currentLevel = 1;
                 levelCorrectAnswers = 0;
                 totalCorrectAnswers = 0;
                 renderQuiz();
-                console.log("Quiz started successfully.");
+                console.log("Quiz started successfully in", currentLanguage);
             } catch (error) {
-                console.error("Error during startQuiz:", error);
-                showMessage("प्रश्नोत्तरी शुरू करने में त्रुटि हुई। कृपया पुनः प्रयास करें।");
+                console.error("Error during startQuizInSelectedLanguage:", error);
+                showMessage(langText[currentLanguage].messageBoxError);
             }
         }
 
         // Event Listeners
         window.onload = function() {
             console.log("Window loaded. Attaching event listeners.");
+            updateLanguageUI(); // Set initial language texts
+
             if (startQuizButton) {
-                startQuizButton.addEventListener('click', startQuiz);
+                startQuizButton.addEventListener('click', showLanguageSelectionScreen);
                 console.log("Start Quiz button listener attached.");
             } else {
                 console.error("Start Quiz button not found!");
+            }
+
+            if (selectHindiButton) {
+                selectHindiButton.addEventListener('click', () => startQuizInSelectedLanguage('hi'));
+                console.log("Select Hindi button listener attached.");
+            } else {
+                console.error("Select Hindi button not found!");
+            }
+
+            if (selectEnglishButton) {
+                selectEnglishButton.addEventListener('click', () => startQuizInSelectedLanguage('en'));
+                console.log("Select English button listener attached.");
+            } else {
+                console.error("Select English button not found!");
             }
         };
 
