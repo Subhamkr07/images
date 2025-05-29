@@ -145,9 +145,9 @@
     <div id="level-result-screen" class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-40 hidden">
         <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-lg w-full modal-animate-in">
             <h2 id="level-result-message" class="text-3xl font-bold mb-4"></h2>
-            <p class="text-xl text-gray-700 mb-2">सही उत्तर: <span id="level-correct-count" class="font-bold text-green-600"></span></p>
-            <p class="text-xl text-gray-700 mb-2">गलत उत्तर: <span id="level-incorrect-count" class="font-bold text-red-600"></span></p>
-            <p class="text-xl text-gray-700 mb-6">प्रतिशत: <span id="level-percentage" class="font-bold text-blue-600"></span>%</p>
+            <p class="text-xl text-gray-700 mb-2"><span id="level-correct-label">सही उत्तर</span>: <span id="level-correct-count" class="font-bold text-green-600"></span></p>
+            <p class="text-xl text-gray-700 mb-2"><span id="level-incorrect-label">गलत उत्तर</span>: <span id="level-incorrect-count" class="font-bold text-red-600"></span></p>
+            <p class="text-xl text-gray-700 mb-6"><span id="level-percentage-label">प्रतिशत</span>: <span id="level-percentage" class="font-bold text-blue-600"></span>%</p>
             <div class="flex flex-col sm:flex-row justify-center gap-4">
                 <button
                     id="next-level-button"
@@ -335,11 +335,10 @@
                 this.onerror=null;
                 this.src=`https://placehold.co/400x250/CCCCCC/666666?text=${encodeURIComponent(langText[currentLanguage].imageNotAvailable)}`;
             };
-            // Update level result screen buttons and labels
-            document.getElementById('level-result-message').textContent = langText[currentLanguage].levelPassed(currentLevel); // Placeholder, will be updated by showLevelResultScreen
-            document.getElementById('level-correct-count').previousSibling.textContent = langText[currentLanguage].correctAnswers + ": ";
-            document.getElementById('level-incorrect-count').previousSibling.textContent = langText[currentLanguage].incorrectAnswers + ": ";
-            document.getElementById('level-percentage').previousSibling.textContent = langText[currentLanguage].percentage + ": ";
+            // Update level result screen labels
+            document.getElementById('level-correct-label').textContent = langText[currentLanguage].correctAnswers;
+            document.getElementById('level-incorrect-label').textContent = langText[currentLanguage].incorrectAnswers;
+            document.getElementById('level-percentage-label').textContent = langText[currentLanguage].percentage;
             document.getElementById('next-level-button').textContent = langText[currentLanguage].nextLevel;
             document.getElementById('retry-level-button-result').textContent = langText[currentLanguage].retryLevel;
             document.getElementById('home-button-result').textContent = langText[currentLanguage].home;
@@ -388,8 +387,8 @@
                     <line x1="${x1 + 10}" y1="${y1}" x2="${x1 + 10}" y2="${y1 - 10}" stroke="#3b82f6" stroke-width="2"/>
                     <line x1="${x1}" y1="${y1 - 10}" x2="${x1 + 10}" y2="${y1 - 10}" stroke="#3b82f6" stroke-width="2"/>
 
-                    <text x="${(x1 + x2) / 2}" y="${y1 + 20}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">3 units</text>
-                    <text x="${x1 - 30}" y="${(y1 + y3) / 2}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(-90 ${x1 - 30},${(y1 + y3) / 2})">4 units</text>
+                    <text x="${(x1 + x2) / 2}" y="${y1 + 20}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">${currentLanguage === 'hi' ? '3 इकाई' : '3 units'}</text>
+                    <text x="${x1 - 30}" y="${(y1 + y3) / 2}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(-90 ${x1 - 30},${(y1 + y3) / 2})">${currentLanguage === 'hi' ? '4 इकाई' : '4 units'}</text>
                     <text x="${(x2 + x3) / 2 + 10}" y="${(y2 + y3) / 2 - 10}" font-family="Inter, sans-serif" font-size="20" fill="#dc2626" text-anchor="middle">X</text>
                 </svg>
             `;
@@ -456,8 +455,8 @@
                     <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#f8fafc" rx="8" ry="8"/>
                     <rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" fill="#dbeafe" stroke="#3b82f6" stroke-width="3"/>
                     
-                    <text x="${rectX + rectWidth / 2}" y="${rectY - 15}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">8 cm</text>
-                    <text x="${rectX - 25}" y="${rectY + rectHeight / 2}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(-90 ${rectX - 25},${rectY + rectHeight / 2})">5 cm</text>
+                    <text x="${rectX + rectWidth / 2}" y="${rectY - 15}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">${currentLanguage === 'hi' ? '8 सेमी' : '8 cm'}</text>
+                    <text x="${rectX - 25}" y="${rectY + rectHeight / 2}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(-90 ${rectX - 25},${rectY + rectHeight / 2})">${currentLanguage === 'hi' ? '5 सेमी' : '5 cm'}</text>
                 </svg>
             `;
             return createSvgDataUrl(svg);
@@ -480,9 +479,9 @@
                     <ellipse cx="${centerX}" cy="${centerY + height / 2}" rx="${radius}" ry="${radius / 3}" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
                     <ellipse cx="${centerX}" cy="${centerY + height / 2}" rx="${radius}" ry="${radius / 3}" fill="none" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 2"/>
 
-                    <text x="${centerX + radius + 30}" y="${centerY}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(90 ${centerX + radius + 30},${centerY})">10 cm</text>
+                    <text x="${centerX + radius + 30}" y="${centerY}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle" transform="rotate(90 ${centerX + radius + 30},${centerY})">${currentLanguage === 'hi' ? '10 सेमी' : '10 cm'}</text>
                     <line x1="${centerX - radius}" y1="${centerY + height / 2 + 10}" x2="${centerX + radius}" y2="${centerY + height / 2 + 10}" stroke="#1e40af" stroke-width="1"/>
-                    <text x="${centerX}" y="${centerY + height / 2 + 30}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">3 cm</text>
+                    <text x="${centerX}" y="${centerY + height / 2 + 30}" font-family="Inter, sans-serif" font-size="20" fill="#1e40af" text-anchor="middle">${currentLanguage === 'hi' ? '3 सेमी' : '3 cm'}</text>
                 </svg>
             `;
             return createSvgDataUrl(svg);
@@ -651,7 +650,7 @@
             { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk1", image: "statue_of_liberty", question: { hi: "यह प्रसिद्ध स्मारक कहाँ स्थित है और यह किस देश को उपहार में दिया गया था?", en: "Where is this famous monument located and which country was it gifted to?" }, options: { hi: ["लंदन - यूनाइटेड किंगडम", "पेरिस - फ्रांस", "न्यूयॉर्क - संयुक्त राज्य अमेरिका", "बर्लिन - जर्मनी", "टोक्यो - जापान"], en: ["London - United Kingdom", "Paris - France", "New York - United States", "Berlin - Germany", "Tokyo - Japan"] }, answer: { hi: "न्यूयॉर्क - संयुक्त राज्य अमेरिका", en: "New York - United States" } },
             { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk2", image: "map_of_africa", question: { hi: "इस महाद्वीप पर स्थित सबसे ऊँचा पर्वत कौन सा है?", en: "What is the highest mountain located on this continent?" }, options: { hi: ["माउंट एवरेस्ट", "माउंट किलिमंजारो", "माउंट फ़ूजी", "माउंट ब्लैंक", "माउंट मैकिनले"], en: ["Mount Everest", "Mount Kilimanjaro", "Mount Fuji", "Mount Blanc", "Mount McKinley"] }, answer: { hi: "माउंट किलिमंजारो", en: "Mount Kilimanjaro" } },
             { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk3", image: "national_bird_peacock", question: { hi: "यह भारत का राष्ट्रीय पक्षी है। इसकी मुख्य विशेषता क्या है?", en: "This is the national bird of India. What is its main characteristic?" }, options: { hi: ["यह बहुत तेज़ दौड़ता है", "यह अपनी सुंदर पूंछ के पंखों के लिए जाना जाता है", "यह रात में शिकार करता है", "यह पानी में रहता है", "यह उड़ नहीं सकता"], en: ["It runs very fast", "It is known for its beautiful tail feathers", "It hunts at night", "It lives in water", "It cannot fly"] }, answer: { hi: "यह अपनी सुंदर पूंछ के पंखों के लिए जाना जाता है", en: "It is known for its beautiful tail feathers" } },
-            { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk4", image: "seven_wonders_colosseum", question: { hi: "यह प्राचीन अखाड़ा किस शहर में स्थित है और यह किस साम्राज्य का प्रतीक है?", en: "In which city is this ancient amphitheater located, and which empire does it symbolize?" }, options: { hi: ["एथेंस - ग्रीक साम्राज्य", "रोम - रोमन साम्राज्य", "इस्तांबुल - ओटोमन साम्राज्य", "काहिरा - मिस्र साम्राज्य", "बीजिंग - चीनी साम्राज्य"], en: ["Athens - Greek Empire", "Rome - Roman Empire", "Istanbul - Ottoman Empire", "Cairo - Egyptian Empire", "Beijing - Chinese Empire"] }, answer: { hi: "रोम - रोमन साम्राज्य", en: "Rome - Roman Empire" } },
+            { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk4", image: "seven_wonders_colosseum", question: { hi: "यह प्राचीन अखाड़ा किस शहर में स्थित है और यह किस साम्राज्य का प्रतीक है?", en: ["एथेंस - ग्रीक साम्राज्य", "रोम - रोमन साम्राज्य", "इस्तांबुल - ओटोमन साम्राज्य", "काहिरा - मिस्र साम्राज्य", "बीजिंग - चीनी साम्राज्य"], en: ["Athens - Greek Empire", "Rome - Roman Empire", "Istanbul - Ottoman Empire", "Cairo - Egyptian Empire", "Beijing - Chinese Empire"] }, answer: { hi: "रोम - रोमन साम्राज्य", en: "Rome - Roman Empire" } },
             { subject: { hi: "सामान्य ज्ञान", en: "General Knowledge" }, id: "gk5", image: "solar_system_planets", question: { hi: "इस सौरमंडल के चित्र में, सूर्य से दूसरा ग्रह कौन सा है?", en: "In this image of the solar system, which is the second planet from the Sun?" }, options: { hi: ["मंगल", "बृहस्पति", "शुक्र", "पृथ्वी", "शनि"], en: ["Mars", "Jupiter", "Venus", "Earth", "Saturn"] }, answer: { hi: "शुक्र", en: "Venus" } },
 
             // Level 7 (Language)
@@ -701,52 +700,52 @@
             "set_theory_venn_diagram_generated": generateSetTheoryVennDiagramSVG,
             "slope_of_line_graph_generated": generateSlopeOfLineGraphSVG,
             // Math (Still needs image)
-            "pie_chart_distribution": "images/pie_chart_distribution.png",
-            "geometric_sequence": "images/geometric_sequence.png",
-            "quadratic_equation_graph": "images/quadratic_equation_graph.png",
+            "pie_chart_distribution": "https://placehold.co/400x250/FFD700/000000?text=Pie+Chart+Distribution", // Placeholder
+            "geometric_sequence": "https://placehold.co/400x250/ADD8E6/000000?text=Geometric+Sequence", // Placeholder
+            "quadratic_equation_graph": "https://placehold.co/400x250/90EE90/000000?text=Quadratic+Equation+Graph", // Placeholder
             // Geography (Generated for geo1)
             "world_map_climate_zones_generated": generateWorldMapClimateZonesSVG,
             // Geography (Still needs image)
-            "river_delta": "images/river_delta.png",
-            "tectonic_plates_map": "images/tectonic_plates_map.png",
-            "desert_oasis": "images/desert_oasis.png",
-            "mountain_formation": "images/mountain_formation.png",
+            "river_delta": "https://placehold.co/400x250/D3D3D3/000000?text=River+Delta", // Placeholder
+            "tectonic_plates_map": "https://placehold.co/400x250/FFB6C1/000000?text=Tectonic+Plates+Map", // Placeholder
+            "desert_oasis": "https://placehold.co/400x250/F0E68C/000000?text=Desert+Oasis", // Placeholder
+            "mountain_formation": "https://placehold.co/400x250/B0C4DE/000000?text=Mountain+Formation", // Placeholder
             // History
-            "great_pyramid_giza": "images/great_pyramid_giza.png",
-            "ashoka_pillar": "images/ashoka_pillar.png",
-            "indus_valley_artifacts": "images/indus_valley_artifacts.png",
-            "mughal_miniature_painting": "images/mughal_miniature_painting.png",
-            "harappan_drainage_system": "images/harappan_drainage_system.png",
+            "great_pyramid_giza": "https://placehold.co/400x250/F4A460/000000?text=Great+Pyramid+Giza", // Placeholder
+            "ashoka_pillar": "https://placehold.co/400x250/8FBC8F/000000?text=Ashoka+Pillar", // Placeholder
+            "indus_valley_artifacts": "https://placehold.co/400x250/D8BFD8/000000?text=Indus+Valley+Artifacts", // Placeholder
+            "mughal_miniature_painting": "https://placehold.co/400x250/CD853F/000000?text=Mughal+Miniature+Painting", // Placeholder
+            "harappan_drainage_system": "https://placehold.co/400x250/A9A9A9/000000?text=Harappan+Drainage+System", // Placeholder
             // Computer/IT (Generated for it3)
-            "network_topology": "images/network_topology.png",
-            "flowchart_decision": "images/flowchart_decision.png",
+            "network_topology": "https://placehold.co/400x250/87CEEB/000000?text=Network+Topology", // Placeholder
+            "flowchart_decision": "https://placehold.co/400x250/FFDAB9/000000?text=Flowchart+Decision", // Placeholder
             "simple_python_loop_generated": generateSimplePythonLoopSVG,
-            "cloud_computing_diagram": "images/cloud_computing_diagram.png",
-            "database_icon": "images/database_icon.png",
+            "cloud_computing_diagram": "https://placehold.co/400x250/E0BBE4/000000?text=Cloud+Computing+Diagram", // Placeholder
+            "database_icon": "https://placehold.co/400x250/C0C0C0/000000?text=Database+Icon", // Placeholder
             // General Knowledge
-            "statue_of_liberty": "images/statue_of_liberty.png",
-            "map_of_africa": "images/map_of_africa.png",
-            "national_bird_peacock": "images/national_bird_peacock.png",
-            "seven_wonders_colosseum": "images/seven_wonders_colosseum.png",
-            "solar_system_planets": "images/solar_system_planets.png",
+            "statue_of_liberty": "https://placehold.co/400x250/B0E0E6/000000?text=Statue+of+Liberty", // Placeholder
+            "map_of_africa": "https://placehold.co/400x250/F5DEB3/000000?text=Map+of+Africa", // Placeholder
+            "national_bird_peacock": "https://placehold.co/400x250/48D1CC/000000?text=National+Bird+Peacock", // Placeholder
+            "seven_wonders_colosseum": "https://placehold.co/400x250/DAA520/000000?text=Colosseum", // Placeholder
+            "solar_system_planets": "https://placehold.co/400x250/8A2BE2/000000?text=Solar+System+Planets", // Placeholder
             // Language
-            "person_deep_thought": "images/person_deep_thought.png",
-            "children_playing_happily": "images/children_playing_happily.png",
-            "old_book_open": "images/old_book_open.png",
-            "person_speaking_microphone": "images/person_speaking_microphone.png",
-            "puzzle_pieces_fitting": "images/puzzle_pieces_fitting.png",
+            "person_deep_thought": "https://placehold.co/400x250/DDA0DD/000000?text=Person+Deep+Thought", // Placeholder
+            "children_playing_happily": "https://placehold.co/400x250/98FB98/000000?text=Children+Playing+Happily", // Placeholder
+            "old_book_open": "https://placehold.co/400x250/F5DEB3/000000?text=Old+Book+Open", // Placeholder
+            "person_speaking_microphone": "https://placehold.co/400x250/FFC0CB/000000?text=Person+Speaking+Microphone", // Placeholder
+            "puzzle_pieces_fitting": "https://placehold.co/400x250/ADD8E6/000000?text=Puzzle+Pieces+Fitting", // Placeholder
             // Science - Advanced
-            "human_brain_lobes": "images/human_brain_lobes.png",
-            "water_cycle_diagram": "images/water_cycle_diagram.png",
-            "food_chain_web": "images/food_chain_web.png",
-            "solar_eclipse_diagram": "images/solar_eclipse_diagram.png",
-            "dna_replication_process": "images/dna_replication_process.png",
+            "human_brain_lobes": "https://placehold.co/400x250/DDA0DD/000000?text=Human+Brain+Lobes", // Placeholder
+            "water_cycle_diagram": "https://placehold.co/400x250/87CEFA/000000?text=Water+Cycle+Diagram", // Placeholder
+            "food_chain_web": "https://placehold.co/400x250/98FB98/000000?text=Food+Chain+Web", // Placeholder
+            "solar_eclipse_diagram": "https://placehold.co/400x250/6A5ACD/FFFFFF?text=Solar+Eclipse+Diagram", // Placeholder
+            "dna_replication_process": "https://placehold.co/400x250/FF6347/FFFFFF?text=DNA+Replication", // Placeholder
             // GK - Advanced
-            "united_nations_building": "images/united_nations_building.png",
-            "amazon_river_forest": "images/amazon_river_forest.png",
-            "india_gate_delhi": "images/india_gate_delhi.png",
-            "iss_in_space": "images/iss_in_space.png",
-            "great_barrier_reef": "images/great_barrier_reef.png",
+            "united_nations_building": "https://placehold.co/400x250/B0C4DE/000000?text=UN+Building", // Placeholder
+            "amazon_river_forest": "https://placehold.co/400x250/228B22/FFFFFF?text=Amazon+River+Forest", // Placeholder
+            "india_gate_delhi": "https://placehold.co/400x250/CD5C5C/FFFFFF?text=India+Gate", // Placeholder
+            "iss_in_space": "https://placehold.co/400x250/4682B4/FFFFFF?text=ISS+in+Space", // Placeholder
+            "great_barrier_reef": "https://placehold.co/400x250/00CED1/FFFFFF?text=Great+Barrier+Reef", // Placeholder
         };
 
         // Quiz state variables
@@ -885,19 +884,19 @@
                 questionSubjectSpan.textContent = currentQuestion.subject[currentLanguage];
 
                 // Image switching: Hide old image instantly
+                questionImage.classList.remove('image-visible');
                 questionImage.classList.add('image-hidden');
-                questionImage.src = ''; // Clear src to make it disappear
-
-                // Set new image source after a tiny delay for visual effect, or immediately
-                // For "instant and seamless", setting src directly is best.
-                // The class for opacity transition will handle the "disappear" and "appear" effect.
-                if (typeof imageMap[currentQuestion.image] === 'function') {
-                    questionImage.src = imageMap[currentQuestion.image](); // Call the function to get SVG data URL
-                } else {
-                    questionImage.src = imageMap[currentQuestion.image]; // Use the direct path
-                }
-                questionImage.classList.remove('image-hidden'); // Make new image visible
-                questionImage.classList.add('image-visible'); // Add visible class for transition
+                
+                // Set new image source after a short delay to allow for fade-out
+                setTimeout(() => {
+                    if (typeof imageMap[currentQuestion.image] === 'function') {
+                        questionImage.src = imageMap[currentQuestion.image](); // Call the function to get SVG data URL
+                    } else {
+                        questionImage.src = imageMap[currentQuestion.image]; // Use the direct path
+                    }
+                    questionImage.classList.remove('image-hidden'); // Make new image visible
+                    questionImage.classList.add('image-visible'); // Add visible class for transition
+                }, 100); // Small delay for visual effect
                 
                 questionImage.alt = `Question Image for ${currentQuestion.id}`;
                 questionText.textContent = currentQuestion.question[currentLanguage];
