@@ -732,7 +732,7 @@
             "geometric_sequence": "images/geometric_sequence.png",
             "quadratic_equation_graph": "images/quadratic_equation_graph.png",
             // Geography (Generated for geo1)
-            "world_map_climate_zones_generated": generateWorldMapClimateZonesSVG,
+            "world_map_climate_zones_generated": "images/world_map_climate.webp",
             // Geography (Still needs image)
             "river_delta": "images/river_delta.png",
             "tectonic_plates_map": "images/tectonic_plates_map.png",
@@ -900,6 +900,20 @@
         }
 
         /**
+         * Preloads the image for a question so the next question appears faster.
+         * @param {object} question
+         */
+        function preloadQuestionImage(question) {
+            if (!question) return;
+            const src = typeof imageMap[question.image] === 'function'
+                ? imageMap[question.image]()
+                : imageMap[question.image];
+            if (!src) return;
+            const img = new Image();
+            img.src = src;
+        }
+
+        /**
          * Renders the current question and its options on the screen.
          */
         function renderQuiz() {
@@ -931,6 +945,9 @@
                 // The CSS transition on #question-image handles the fade-in
                 questionImage.classList.remove('image-hidden');
                 questionImage.classList.add('image-visible');
+
+                // Preload the next question image to improve UX
+                preloadQuestionImage(shuffledQuestions[currentQuestionGlobalIndex + 1]);
                 
                 questionText.textContent = currentQuestion.question[currentLanguage];
                 optionsContainer.innerHTML = ''; 
